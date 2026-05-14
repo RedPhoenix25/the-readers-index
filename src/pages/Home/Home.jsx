@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import heroBg from '../../assets/images/hero-bg.png';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, ChevronRight, Sparkles, Mail, Star, Users, Library } from 'lucide-react';
 import BookCard from '../../components/BookCard/BookCard';
