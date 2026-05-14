@@ -19,7 +19,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  /* background removed - handled in Home.jsx for better deployment compatibility */
+  background: var(--hero-bg) center/cover no-repeat;
   opacity: 0.12; 
   z-index: 0;
   pointer-events: none;
