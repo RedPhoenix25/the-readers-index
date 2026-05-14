@@ -78,7 +78,7 @@ export default function Home() {
   return (
     <div className="page-wrapper">
       {/* ===== HERO ===== */}
-      <section className="hero" id="hero-section">
+      <section className="hero" id="hero-section" style={{ backgroundImage: `url(${heroBg})` }}>
         {/* Floating dust particles */}
         <div className="hero__particles">
           {Array.from({ length: 20 }).map((_, i) => (

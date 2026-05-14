@@ -19,8 +19,8 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: url('../../assets/images/hero-bg.png') center/cover no-repeat;
-  opacity: 0.12; /* Subtle opacity so it doesn't overpower text */
+  /* background removed - handled in Home.jsx for better deployment compatibility */
+  opacity: 0.12; 
   z-index: 0;
   pointer-events: none;
 }
