@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { ArrowUp } from 'lucide-react';
 import Navbar from './components/Navbar/Navbar';
@@ -55,6 +55,33 @@ function BackToTop() {
   );
 }
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error("React Crash:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '40px', background: '#1a1612', color: '#c9a84c', height: '100vh', textAlign: 'center', fontFamily: 'serif' }}>
+          <h2>The Sanctuary hit a snag.</h2>
+          <p>{this.state.error?.toString()}</p>
+          <button onClick={() => window.location.reload()} style={{ padding: '10px 20px', background: '#c9a84c', color: '#1a1612', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+            Try Re-entering
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function App() {
   const location = useLocation();
   const isAdminPage = location.pathname === '/admin';
@@ -62,7 +89,7 @@ export default function App() {
   const shouldHideFooter = hideFooterPages.includes(location.pathname);
 
   return (
-    <>
+    <ErrorBoundary>
       <ScrollToTop />
       {!isAdminPage && <BackToTop />}
       {!isAdminPage && <Navbar />}
@@ -81,6 +108,6 @@ export default function App() {
         </Routes>
       </main>
       {!shouldHideFooter && <Footer />}
-    </>
+    </ErrorBoundary>
   );
 }

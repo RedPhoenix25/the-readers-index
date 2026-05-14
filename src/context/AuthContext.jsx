@@ -2,10 +2,18 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 
 const AuthContext = createContext(null);
 
+const getInitialToken = () => {
+  try {
+    return localStorage.getItem('token');
+  } catch (e) {
+    return null;
+  }
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userBooks, setUserBooks] = useState([]);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(getInitialToken());
   const [loading, setLoading] = useState(true);
 
   const fetchUserBooks = async (currentToken) => {
