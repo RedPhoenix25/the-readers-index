@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Star, BookmarkPlus, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { API_BASE } from '../../services/api';
 import './BookCard.css';
 
 export default function BookCard({ book, onClick, index = 0, viewMode = 'grid', isProfile = false }) {
@@ -54,7 +55,7 @@ export default function BookCard({ book, onClick, index = 0, viewMode = 'grid', 
     
     setSaving(true);
     try {
-      const res = await fetch('/api/user/books', {
+      const res = await fetch(`${API_BASE}/user/books`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

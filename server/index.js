@@ -138,6 +138,45 @@ app.get('/api/books/:id', async (req, res) => {
   }
 });
 
+app.get('/api/books/:id/engagement', async (req, res) => {
+  try {
+    const book = await Book.findById(req.params.id).populate('comments.user', 'username');
+    if (!book) return res.status(404).json({ error: 'Book not found' });
+    
+    // Convert to the format expected by frontend
+    const comments = (book.comments || []).map(c => ({
+      id: c._id,
+      user_id: c.user?._id,
+      username: c.user?.username || 'Former Librarian',
+      content: c.content,
+      rating: c.rating,
+      created_at: c.created_at
+    }));
+
+    res.json({
+      likes: book.likes || 0,
+      userLiked: false, // In a full implementation, check if req.user.id is in book.likedBy
+      comments
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/books/:id/like', authenticateToken, async (req, res) => {
+  try {
+    const book = await Book.findById(req.params.id);
+    if (!book) return res.status(404).json({ error: 'Book not found' });
+    
+    // Simple increment for now
+    book.likes = (book.likes || 0) + 1;
+    await book.save();
+    res.json({ likes: book.likes });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/books/:id/comments', authenticateToken, async (req, res) => {
   try {
     const { content, rating } = req.body;
@@ -147,11 +186,36 @@ app.post('/api/books/:id/comments', authenticateToken, async (req, res) => {
     book.comments.push({
       user: req.user.id,
       content,
-      rating
+      rating: rating || null
     });
 
     await book.save();
-    res.status(201).json(book.comments[book.comments.length - 1]);
+    
+    // Return the comment with user info populated
+    const savedBook = await Book.findById(book._id).populate('comments.user', 'username');
+    const newComment = savedBook.comments[savedBook.comments.length - 1];
+    
+    res.status(201).json({
+      id: newComment._id,
+      user_id: newComment.user?._id,
+      username: newComment.user?.username || 'Former Librarian',
+      content: newComment.content,
+      rating: newComment.rating,
+      created_at: newComment.created_at
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/comments/:id', authenticateToken, async (req, res) => {
+  try {
+    const book = await Book.findOne({ 'comments._id': req.params.id });
+    if (!book) return res.status(404).json({ error: 'Comment not found' });
+    
+    book.comments = book.comments.filter(c => c._id.toString() !== req.params.id);
+    await book.save();
+    res.json({ message: 'Comment deleted' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

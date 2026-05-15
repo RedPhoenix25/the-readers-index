@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { X, Star, BookOpen, Quote, Calendar, FileText, Bookmark, CheckCircle2, Clock, Plus, Heart, MessageSquare, User, Send, Trash2, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { API_BASE } from '../../services/api';
 import './BookModal.css';
 
 export default function BookModal({ book, onClose }) {
@@ -39,7 +40,7 @@ export default function BookModal({ book, onClose }) {
         const headers = {};
         if (token) headers['Authorization'] = `Bearer ${token}`;
         
-        const res = await fetch(`/api/books/${book.id}/engagement`, { headers });
+        const res = await fetch(`${API_BASE}/books/${book.id}/engagement`, { headers });
         if (res.ok) {
           const data = await res.json();
           setEngagement(data);
@@ -111,7 +112,7 @@ export default function BookModal({ book, onClose }) {
     setSaving(true);
     setSaveStatus(null);
     try {
-      const res = await fetch('/api/user/books', {
+      const res = await fetch(`${API_BASE}/user/books`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -143,7 +144,7 @@ export default function BookModal({ book, onClose }) {
     }));
 
     try {
-      await fetch(`/api/books/${book.id}/like`, {
+      await fetch(`${API_BASE}/books/${book.id}/like`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -164,7 +165,7 @@ export default function BookModal({ book, onClose }) {
 
     setSubmittingComment(true);
     try {
-      const res = await fetch(`/api/books/${book.id}/comments`, {
+      const res = await fetch(`${API_BASE}/books/${book.id}/comments`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -192,7 +193,7 @@ export default function BookModal({ book, onClose }) {
     if (!window.confirm('Delete this comment?')) return;
     
     try {
-      const res = await fetch(`/api/comments/${commentId}`, {
+      const res = await fetch(`${API_BASE}/comments/${commentId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
