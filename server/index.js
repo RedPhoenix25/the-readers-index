@@ -143,19 +143,18 @@ app.get('/api/books/:id/engagement', async (req, res) => {
     const book = await Book.findById(req.params.id).populate('comments.user', 'username');
     if (!book) return res.status(404).json({ error: 'Book not found' });
     
-    // Convert to the format expected by frontend
     const comments = (book.comments || []).map(c => ({
       id: c._id,
-      user_id: c.user?._id,
+      user_id: c.user?._id?.toString(),
       username: c.user?.username || 'Former Librarian',
       content: c.content,
       rating: c.rating,
-      created_at: c.created_at
+      created_at: c.createdAt
     }));
 
     res.json({
-      likes: book.likes || 0,
-      userLiked: false, // In a full implementation, check if req.user.id is in book.likedBy
+      likes: book.likes?.length || 0,
+      userLiked: false, 
       comments
     });
   } catch (err) {
@@ -168,10 +167,12 @@ app.post('/api/books/:id/like', authenticateToken, async (req, res) => {
     const book = await Book.findById(req.params.id);
     if (!book) return res.status(404).json({ error: 'Book not found' });
     
-    // Simple increment for now
-    book.likes = (book.likes || 0) + 1;
-    await book.save();
-    res.json({ likes: book.likes });
+    book.likes = book.likes || [];
+    if (!book.likes.includes(req.user.id)) {
+      book.likes.push(req.user.id);
+      await book.save();
+    }
+    res.json({ likes: book.likes.length });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -191,17 +192,16 @@ app.post('/api/books/:id/comments', authenticateToken, async (req, res) => {
 
     await book.save();
     
-    // Return the comment with user info populated
     const savedBook = await Book.findById(book._id).populate('comments.user', 'username');
     const newComment = savedBook.comments[savedBook.comments.length - 1];
     
     res.status(201).json({
       id: newComment._id,
-      user_id: newComment.user?._id,
+      user_id: newComment.user?._id?.toString(),
       username: newComment.user?.username || 'Former Librarian',
       content: newComment.content,
       rating: newComment.rating,
-      created_at: newComment.created_at
+      created_at: newComment.createdAt
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -225,8 +225,8 @@ app.delete('/api/comments/:id', authenticateToken, async (req, res) => {
 
 app.get('/api/user/books', authenticateToken, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).populate('bookshelf');
-    res.json(user.bookshelf.map(transformBook));
+    const user = await User.findById(req.user.id).populate('shelf.book');
+    res.json(user.shelf.map(item => transformBook(item.book)));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -234,11 +234,12 @@ app.get('/api/user/books', authenticateToken, async (req, res) => {
 
 app.post('/api/user/books', authenticateToken, async (req, res) => {
   try {
-    const { bookId } = req.body;
+    const { bookId, status } = req.body;
     const user = await User.findById(req.user.id);
     
-    if (!user.bookshelf.includes(bookId)) {
-      user.bookshelf.push(bookId);
+    const exists = user.shelf.find(item => item.book.toString() === bookId);
+    if (!exists) {
+      user.shelf.push({ book: bookId, status: status || 'Want to Read' });
       await user.save();
     }
     
@@ -251,7 +252,7 @@ app.post('/api/user/books', authenticateToken, async (req, res) => {
 app.delete('/api/user/books/:id', authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    user.bookshelf = user.bookshelf.filter(bid => bid.toString() !== req.params.id);
+    user.shelf = user.shelf.filter(item => item.book.toString() !== req.params.id);
     await user.save();
     res.json({ message: 'Removed from shelf' });
   } catch (err) {
@@ -261,7 +262,6 @@ app.delete('/api/user/books/:id', authenticateToken, async (req, res) => {
 
 // --- LISTS & READING ---
 
-// Alias for compatibility
 app.get('/api/curated', (req, res) => res.redirect('/api/lists'));
 
 app.get('/api/lists', async (req, res) => {
@@ -273,7 +273,8 @@ app.get('/api/lists', async (req, res) => {
         ...listData,
         id: l._id.toString(),
         bookIds: l.books.map(b => b._id.toString()),
-        books: l.books.map(transformBook)
+        books: l.books.map(transformBook),
+        created_at: l.createdAt
       };
     }));
   } catch (err) {
@@ -325,7 +326,7 @@ app.post('/api/subscribe', async (req, res) => {
 app.get('/api/subscribers', async (req, res) => {
   try {
     const subs = await Subscriber.find().sort({ createdAt: -1 });
-    res.json(subs.map(s => ({ ...s.toObject(), id: s._id })));
+    res.json(subs.map(s => ({ ...s.toObject(), id: s._id, created_at: s.createdAt })));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -334,7 +335,7 @@ app.get('/api/subscribers', async (req, res) => {
 app.get('/api/users', async (req, res) => {
   try {
     const users = await User.find().select('-password').sort({ createdAt: -1 });
-    res.json(users.map(u => ({ ...u.toObject(), id: u._id })));
+    res.json(users.map(u => ({ ...u.toObject(), id: u._id, created_at: u.createdAt })));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
