@@ -130,9 +130,66 @@ app.get('/api/books/:id', async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ error: 'Invalid book ID format' });
     }
-    const book = await Book.findById(id);
+    const book = await Book.findById(id).populate('comments.user', 'username');
     if (!book) return res.status(404).json({ error: 'Book not found' });
     res.json(transformBook(book));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/books/:id/comments', authenticateToken, async (req, res) => {
+  try {
+    const { content, rating } = req.body;
+    const book = await Book.findById(req.params.id);
+    if (!book) return res.status(404).json({ error: 'Book not found' });
+
+    book.comments.push({
+      user: req.user.id,
+      content,
+      rating
+    });
+
+    await book.save();
+    res.status(201).json(book.comments[book.comments.length - 1]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- USER SHELF API ---
+
+app.get('/api/user/books', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).populate('bookshelf');
+    res.json(user.bookshelf.map(transformBook));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/user/books', authenticateToken, async (req, res) => {
+  try {
+    const { bookId } = req.body;
+    const user = await User.findById(req.user.id);
+    
+    if (!user.bookshelf.includes(bookId)) {
+      user.bookshelf.push(bookId);
+      await user.save();
+    }
+    
+    res.status(201).json({ message: 'Added to shelf' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/user/books/:id', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    user.bookshelf = user.bookshelf.filter(bid => bid.toString() !== req.params.id);
+    await user.save();
+    res.json({ message: 'Removed from shelf' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

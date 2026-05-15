@@ -24,8 +24,64 @@
       }
     </script>
     <div id="root">
-      <div style="display: flex; justify-content: center; align-items: center; height: 100vh; color: var(--accent-gold); font-family: 'Playfair Display', serif;">
-        Loading Sanctuary...
+      <style>
+        .sanctuary-loader {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          background: #1a1612;
+          color: #c9a84c;
+          font-family: 'Playfair Display', serif;
+        }
+        .loader-icon {
+          width: 80px;
+          height: 80px;
+          margin-bottom: 24px;
+          position: relative;
+          animation: float 3s ease-in-out infinite;
+        }
+        .loader-pulse {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 60px;
+          height: 60px;
+          background: #c9a84c22;
+          border-radius: 50%;
+          animation: pulse 2s ease-out infinite;
+        }
+        .loader-text {
+          font-size: 1.2rem;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
+          opacity: 0.8;
+          animation: fade 2s ease-in-out infinite;
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-15px); }
+        }
+        @keyframes pulse {
+          0% { width: 40px; height: 40px; opacity: 0.8; }
+          100% { width: 120px; height: 120px; opacity: 0; }
+        }
+        @keyframes fade {
+          0%, 100% { opacity: 0.4; }
+          50% { opacity: 1; }
+        }
+      </style>
+      <div class="sanctuary-loader">
+        <div class="loader-icon">
+          <div class="loader-pulse"></div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+        </div>
+        <div class="loader-text">Entering the Sanctuary</div>
       </div>
     </div>
     <script type="module" src="/src/main.jsx"></script>
