@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, User, ArrowRight, Library, Sparkles } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { API_BASE } from '../../services/api';
 import './Auth.css';
 
 export default function Auth({ type = 'login' }) {
@@ -20,7 +21,7 @@ export default function Auth({ type = 'login' }) {
     setError('');
     setLoading(true);
 
-    const endpoint = type === 'login' ? '/api/auth/login' : '/api/auth/register';
+    const endpoint = type === 'login' ? `${API_BASE}/auth/login` : `${API_BASE}/auth/register`;
     
     try {
       const res = await fetch(endpoint, {

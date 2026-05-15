@@ -1,7 +1,7 @@
 // API service layer for The Readers Index
 // Centralizes all backend communication
 
-const API_BASE = import.meta.env.MODE === 'production' 
+export const API_BASE = import.meta.env.MODE === 'production' 
   ? 'https://the-readers-index.onrender.com/api'
   : '/api';
 
