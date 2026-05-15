@@ -201,6 +201,42 @@ app.post('/api/subscribe', async (req, res) => {
   }
 });
 
+app.get('/api/subscribers', async (req, res) => {
+  try {
+    const subs = await Subscriber.find().sort({ createdAt: -1 });
+    res.json(subs.map(s => ({ ...s.toObject(), id: s._id })));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/users', async (req, res) => {
+  try {
+    const users = await User.find().select('-password').sort({ createdAt: -1 });
+    res.json(users.map(u => ({ ...u.toObject(), id: u._id })));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/admin/users/:id', async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ message: 'User deleted' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/subscribers/:id', async (req, res) => {
+  try {
+    await Subscriber.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Subscriber deleted' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Multer & Uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'uploads/'),
