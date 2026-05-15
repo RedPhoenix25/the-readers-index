@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { API_BASE } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -18,7 +19,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserBooks = async (currentToken) => {
     try {
-      const res = await fetch('/api/user/books', {
+      const res = await fetch(`${API_BASE}/user/books`, {
         headers: { 'Authorization': `Bearer ${currentToken}` }
       });
       if (res.ok) {
@@ -45,7 +46,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserProfile = async () => {
     try {
-      const res = await fetch('/api/auth/me', {
+      const res = await fetch(`${API_BASE}/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
