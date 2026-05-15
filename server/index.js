@@ -126,7 +126,11 @@ app.get('/api/books', async (req, res) => {
 
 app.get('/api/books/:id', async (req, res) => {
   try {
-    const book = await Book.findById(req.params.id);
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid book ID format' });
+    }
+    const book = await Book.findById(id);
     if (!book) return res.status(404).json({ error: 'Book not found' });
     res.json(transformBook(book));
   } catch (err) {
@@ -135,6 +139,9 @@ app.get('/api/books/:id', async (req, res) => {
 });
 
 // --- LISTS & READING ---
+
+// Alias for compatibility
+app.get('/api/curated', (req, res) => res.redirect('/api/lists'));
 
 app.get('/api/lists', async (req, res) => {
   try {
@@ -167,7 +174,17 @@ app.get('/api/currently-reading', async (req, res) => {
 app.get('/api/meta/genres', async (req, res) => {
   try {
     const genres = await Book.distinct('genre');
-    res.json(['All', ...genres.filter(g => g)]);
+    res.json(['All', ...genres.filter(g => g).sort()]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/meta/moods', async (req, res) => {
+  try {
+    const moods = await Book.distinct('mood');
+    const flatMoods = [...new Set(moods.filter(m => m).map(m => m.split(',')).flat().map(m => m.trim()))];
+    res.json(['All', ...flatMoods.sort()]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
