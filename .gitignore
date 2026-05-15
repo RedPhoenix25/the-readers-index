@@ -15,8 +15,9 @@ dist-ssr
 .env
 .env.*
 
-# Database & Uploads
-# *.sqlite (Commented out to allow initial upload to Vercel)
+# Database & Secrets
+*.sqlite
+server/.env
 server/uploads/*
 !server/uploads/.gitkeep
 
