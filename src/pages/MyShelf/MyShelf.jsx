@@ -99,7 +99,7 @@ function ShelfSection({ section, allBooks, onSelectBook, onMarkRead, onRemove })
 }
 
 export default function MyShelf() {
-  const { user, token, loading: authLoading, updateUser } = useAuth();
+  const { user, token, loading: authLoading, updateUser, refreshUserBooks } = useAuth();
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedBook, setSelectedBook] = useState(null);
@@ -146,6 +146,7 @@ export default function MyShelf() {
       });
       if (res.ok) {
         setBooks(books.filter(b => b.id !== bookId));
+        refreshUserBooks();
       }
     } catch (err) {
       alert('Failed to remove book');
@@ -167,6 +168,7 @@ export default function MyShelf() {
         setBooks(prev => prev.map(b => 
           b.id === bookId ? { ...b, status: 'Read' } : b
         ));
+        refreshUserBooks();
       }
     } catch (err) {
       alert('Failed to update book status');
