@@ -83,7 +83,8 @@ app.post('/api/auth/login', async (req, res) => {
 app.get('/api/auth/me', authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
-    res.json(user);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ ...user.toObject(), id: user._id.toString() });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -226,7 +227,9 @@ app.delete('/api/comments/:id', authenticateToken, async (req, res) => {
 app.get('/api/user/books', authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).populate('shelf.book');
-    res.json(user.shelf.map(item => transformBook(item.book)));
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    const validItems = (user.shelf || []).filter(item => item.book);
+    res.json(validItems.map(item => ({ ...transformBook(item.book), status: item.status })));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -236,14 +239,18 @@ app.post('/api/user/books', authenticateToken, async (req, res) => {
   try {
     const { bookId, status } = req.body;
     const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
     
-    const exists = user.shelf.find(item => item.book.toString() === bookId);
-    if (!exists) {
+    user.shelf = user.shelf || [];
+    const existsIndex = user.shelf.findIndex(item => item.book && item.book.toString() === bookId);
+    if (existsIndex === -1) {
       user.shelf.push({ book: bookId, status: status || 'Want to Read' });
-      await user.save();
+    } else {
+      user.shelf[existsIndex].status = status || 'Want to Read';
     }
+    await user.save();
     
-    res.status(201).json({ message: 'Added to shelf' });
+    res.status(201).json({ message: 'Added/Updated on shelf' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -252,7 +259,9 @@ app.post('/api/user/books', authenticateToken, async (req, res) => {
 app.delete('/api/user/books/:id', authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    user.shelf = user.shelf.filter(item => item.book.toString() !== req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    
+    user.shelf = (user.shelf || []).filter(item => item.book && item.book.toString() !== req.params.id);
     await user.save();
     res.json({ message: 'Removed from shelf' });
   } catch (err) {
