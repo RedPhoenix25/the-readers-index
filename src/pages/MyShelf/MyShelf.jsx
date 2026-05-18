@@ -4,7 +4,7 @@ import { BookOpen, Trash2, Heart, Clock, CheckCircle2, Bookmark, Camera, User, S
 import { useAuth } from '../../context/AuthContext';
 import BookCard from '../../components/BookCard/BookCard';
 import BookModal from '../../components/BookModal/BookModal';
-import { uploadAvatar } from '../../services/api';
+import { uploadAvatar, API_BASE } from '../../services/api';
 import './MyShelf.css';
 
 const ITEMS_PER_PAGE = 8;
@@ -117,7 +117,7 @@ export default function MyShelf() {
     if (!token) return;
     setLoading(true);
     try {
-      const res = await fetch('/api/user/books', {
+      const res = await fetch(`${API_BASE}/user/books`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -140,7 +140,7 @@ export default function MyShelf() {
     if (!window.confirm('Remove from your archive?')) return;
     
     try {
-      const res = await fetch(`/api/user/books/${bookId}`, {
+      const res = await fetch(`${API_BASE}/user/books/${bookId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -155,7 +155,7 @@ export default function MyShelf() {
   const handleMarkAsRead = async (e, bookId) => {
     e.stopPropagation();
     try {
-      const res = await fetch('/api/user/books', {
+      const res = await fetch(`${API_BASE}/user/books`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
