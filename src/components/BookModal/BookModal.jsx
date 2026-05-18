@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { X, Star, BookOpen, Quote, Calendar, FileText, Bookmark, CheckCircle2, Clock, Plus, Heart, MessageSquare, User, Send, Trash2, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE } from '../../services/api';
+import toast from 'react-hot-toast';
 import './BookModal.css';
 
 export default function BookModal({ book, onClose }) {
@@ -133,7 +134,7 @@ export default function BookModal({ book, onClose }) {
   };
 
   const handleLike = async () => {
-    if (!user) return alert("Please sign in to like this book.");
+    if (!user) return toast.error("Please sign in to like this book.");
     
     // Optimistic update
     const isLiking = !engagement.userLiked;
@@ -160,7 +161,7 @@ export default function BookModal({ book, onClose }) {
 
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
-    if (!user) return alert("Please sign in to comment.");
+    if (!user) return toast.error("Please sign in to comment.");
     if (!newComment.trim()) return;
 
     setSubmittingComment(true);
@@ -181,17 +182,17 @@ export default function BookModal({ book, onClose }) {
         }));
         setNewComment('');
         setNewRating(0);
+        setNewRating(0);
+        toast.success("Thought posted successfully!");
       }
     } catch (err) {
-      alert("Failed to post comment.");
+      toast.error("Failed to post comment.");
     } finally {
       setSubmittingComment(false);
     }
   };
 
   const handleDeleteComment = async (commentId) => {
-    if (!window.confirm('Delete this comment?')) return;
-    
     try {
       const res = await fetch(`${API_BASE}/comments/${commentId}`, {
         method: 'DELETE',
@@ -202,9 +203,10 @@ export default function BookModal({ book, onClose }) {
           ...prev,
           comments: prev.comments.filter(c => c.id !== commentId)
         }));
+        toast.success("Comment deleted");
       }
     } catch (err) {
-      alert('Failed to delete comment');
+      toast.error('Failed to delete comment');
     }
   };
 

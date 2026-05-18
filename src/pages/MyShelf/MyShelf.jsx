@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import BookCard from '../../components/BookCard/BookCard';
 import BookModal from '../../components/BookModal/BookModal';
 import { uploadAvatar, API_BASE } from '../../services/api';
+import toast from 'react-hot-toast';
 import './MyShelf.css';
 
 const ITEMS_PER_PAGE = 8;
@@ -137,7 +138,6 @@ export default function MyShelf() {
 
   const handleRemoveBook = async (e, bookId) => {
     e.stopPropagation();
-    if (!window.confirm('Remove from your archive?')) return;
     
     try {
       const res = await fetch(`${API_BASE}/user/books/${bookId}`, {
@@ -147,9 +147,10 @@ export default function MyShelf() {
       if (res.ok) {
         setBooks(books.filter(b => b.id !== bookId));
         refreshUserBooks();
+        toast.success('Removed from archive');
       }
     } catch (err) {
-      alert('Failed to remove book');
+      toast.error('Failed to remove book');
     }
   };
 
@@ -169,9 +170,10 @@ export default function MyShelf() {
           b.id === bookId ? { ...b, status: 'Read' } : b
         ));
         refreshUserBooks();
+        toast.success('Marked as read');
       }
     } catch (err) {
-      alert('Failed to update book status');
+      toast.error('Failed to update book status');
     }
   };
 
@@ -184,9 +186,10 @@ export default function MyShelf() {
       const res = await uploadAvatar(file, token);
       if (res.avatar) {
         updateUser({ avatar: res.avatar });
+        toast.success('Avatar updated successfully');
       }
     } catch (err) {
-      alert('Failed to upload avatar. Please try again.');
+      toast.error('Failed to upload avatar. Please try again.');
     } finally {
       setUploadingAvatar(false);
     }

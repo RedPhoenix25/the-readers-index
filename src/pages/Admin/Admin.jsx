@@ -22,6 +22,7 @@ import {
   Mail,
   Download
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { 
   fetchBooks, 
   fetchCurrentlyReading, 
@@ -92,14 +93,31 @@ export default function Admin() {
     thoughts: ''
   });
 
+  const confirmAction = (message, action) => {
+    toast((t) => (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <p style={{ margin: 0, fontWeight: 500 }}>{message}</p>
+        <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+          <button 
+            className="btn-sm" 
+            style={{ background: 'var(--accent-rose)', color: 'white', border: 'none' }}
+            onClick={() => { toast.dismiss(t.id); action(); }}
+          >Confirm</button>
+          <button className="btn-sm btn-ghost" onClick={() => toast.dismiss(t.id)}>Cancel</button>
+        </div>
+      </div>
+    ), { duration: 5000 });
+  };
+
   // Simple mock authentication
   const handleLogin = (e) => {
     e.preventDefault();
     if (password === 'reader123') {
       setIsAuthenticated(true);
       loadData();
+      toast.success('Welcome back, Admin');
     } else {
-      alert('Invalid password');
+      toast.error('Invalid password');
     }
   };
 
@@ -193,8 +211,9 @@ export default function Admin() {
       
       setIsModalOpen(false);
       loadData();
+      toast.success('Book saved successfully');
     } catch (err) {
-      alert('Failed to save book: ' + err.message);
+      toast.error('Failed to save book: ' + err.message);
     } finally {
       setIsSaving(false);
     }
@@ -208,21 +227,24 @@ export default function Admin() {
     try {
       const { url } = await uploadImage(file);
       setFormData(prev => ({ ...prev, cover: url }));
+      toast.success('Image uploaded');
     } catch (err) {
-      alert('Failed to upload image');
+      toast.error('Failed to upload image');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleDeleteBook = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this book?')) return;
-    try {
-      await deleteBook(id);
-      loadData();
-    } catch (err) {
-      alert('Failed to delete book');
-    }
+  const handleDeleteBook = (id) => {
+    confirmAction('Are you sure you want to delete this book?', async () => {
+      try {
+        await deleteBook(id);
+        loadData();
+        toast.success('Book deleted');
+      } catch (err) {
+        toast.error('Failed to delete book');
+      }
+    });
   };
 
   const handleOpenListModal = async (list = null) => {
@@ -264,42 +286,48 @@ export default function Admin() {
       
       setIsListModalOpen(false);
       loadData();
+      toast.success('List saved successfully');
     } catch (err) {
-      alert('Failed to save list');
+      toast.error('Failed to save list');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleDeleteSubscriber = async (id) => {
-    if (!window.confirm('Remove this reader from the archives?')) return;
-    try {
-      await deleteSubscriber(id);
-      loadData();
-    } catch (err) {
-      alert('Failed to remove subscriber');
-    }
+  const handleDeleteSubscriber = (id) => {
+    confirmAction('Remove this reader from the archives?', async () => {
+      try {
+        await deleteSubscriber(id);
+        loadData();
+        toast.success('Subscriber removed');
+      } catch (err) {
+        toast.error('Failed to remove subscriber');
+      }
+    });
   };
 
-  const handleDeleteList = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this curated list?')) return;
-    try {
-      await deleteList(id);
-      loadData();
-    } catch (err) {
-      alert('Failed to delete list');
-    }
+  const handleDeleteList = (id) => {
+    confirmAction('Are you sure you want to delete this curated list?', async () => {
+      try {
+        await deleteList(id);
+        loadData();
+        toast.success('List deleted');
+      } catch (err) {
+        toast.error('Failed to delete list');
+      }
+    });
   };
 
   const handleUpdateReading = async (e) => {
     e.preventDefault();
     setIsSaving(true);
     try {
-      await updateCurrentlyReading(readingForm);
+      const saved = await updateCurrentlyReading(readingForm);
+      setReadingForm(saved);
       loadData();
-      alert('Reading status updated!');
+      toast.success('Reading status updated!');
     } catch (err) {
-      alert('Failed to update reading status');
+      toast.error('Failed to update reading status');
     } finally {
       setIsSaving(false);
     }
@@ -469,7 +497,7 @@ export default function Admin() {
                               const { url } = await uploadImage(file);
                               setReadingForm(prev => ({ ...prev, cover: url }));
                             } catch (err) {
-                              alert('Failed to upload image');
+                              toast.error('Failed to upload image');
                             } finally {
                               setIsSaving(false);
                             }
@@ -593,14 +621,16 @@ export default function Admin() {
                               <td>{user.email}</td>
                               <td>{new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</td>
                               <td style={{ textAlign: 'right' }}>
-                                <button className="btn-icon delete" onClick={async () => {
-                                  if (!window.confirm(`Are you sure you want to delete user "${user.username}"?`)) return;
-                                  try {
-                                    await deleteUser(user.id);
-                                    setUsers(prev => prev.filter(u => u.id !== user.id));
-                                  } catch (err) {
-                                    alert('Failed to delete user');
-                                  }
+                                <button className="btn-icon delete" onClick={() => {
+                                  confirmAction(`Are you sure you want to delete user "${user.username}"?`, async () => {
+                                    try {
+                                      await deleteUser(user.id);
+                                      loadData();
+                                      toast.success('User deleted');
+                                    } catch (err) {
+                                      toast.error('Failed to delete user');
+                                    }
+                                  });
                                 }}>
                                   <Trash2 size={16} />
                                 </button>

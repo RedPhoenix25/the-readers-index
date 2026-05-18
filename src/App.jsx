@@ -13,6 +13,7 @@ import Admin from './pages/Admin/Admin';
 import Auth from './pages/Auth/Auth';
 import MyShelf from './pages/MyShelf/MyShelf';
 import Settings from './pages/Settings/Settings';
+import { Toaster } from 'react-hot-toast';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -90,6 +91,35 @@ export default function App() {
 
   return (
     <ErrorBoundary>
+      <Toaster 
+        position="bottom-center"
+        toastOptions={{
+          style: {
+            background: 'var(--bg-secondary)',
+            color: 'var(--text-primary)',
+            border: '1px solid var(--accent-gold-dim)',
+            borderRadius: 'var(--radius-md)',
+            boxShadow: 'var(--shadow-lg)',
+            fontFamily: 'var(--font-sans)',
+            fontSize: '0.9rem'
+          },
+          success: {
+            iconTheme: {
+              primary: 'var(--accent-gold)',
+              secondary: 'var(--bg-primary)',
+            },
+          },
+          error: {
+            style: {
+              border: '1px solid var(--accent-rose)',
+            },
+            iconTheme: {
+              primary: 'var(--accent-rose)',
+              secondary: '#fff',
+            },
+          },
+        }}
+      />
       <ScrollToTop />
       {!isAdminPage && <BackToTop />}
       {!isAdminPage && <Navbar />}

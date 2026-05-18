@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import heroBg from '../../assets/images/hero-bg.png';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { ArrowRight, BookOpen, ChevronRight, Sparkles, Mail, Star, Users, Library } from 'lucide-react';
 import BookCard from '../../components/BookCard/BookCard';
 import BookModal from '../../components/BookModal/BookModal';
@@ -69,8 +70,9 @@ export default function Home() {
       await subscribe(email);
       setSubscribed(true);
       setEmail('');
+      toast.success('Successfully subscribed!');
     } catch (err) {
-      alert(err.message || 'Failed to subscribe. Please try again.');
+      toast.error(err.message || 'Failed to subscribe. Please try again.');
     } finally {
       setIsSubscribing(false);
     }

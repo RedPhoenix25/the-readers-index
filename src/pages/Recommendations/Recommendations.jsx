@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import * as LucideIcons from 'lucide-react';
 import { ArrowRight, ArrowLeft, Sparkles, RotateCcw, BookOpen, Share2, BookmarkPlus, Download } from 'lucide-react';
 import { toPng } from 'html-to-image';
+import toast from 'react-hot-toast';
 import BookCard from '../../components/BookCard/BookCard';
 import BookModal from '../../components/BookModal/BookModal';
 import { fetchBooks, fetchLists } from '../../services/api';
@@ -124,7 +125,7 @@ export default function Recommendations() {
         await navigator.share(shareData);
       } else {
         await navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`);
-        alert('Link copied to clipboard!');
+        toast.success('Link copied to clipboard!');
       }
     } catch (err) {
       console.error('Error sharing:', err);
@@ -152,7 +153,7 @@ export default function Recommendations() {
       link.click();
     } catch (err) {
       console.error('Failed to generate image', err);
-      alert('Failed to generate your share card. Please try again.');
+      toast.error('Failed to generate your share card. Please try again.');
     } finally {
       setIsGenerating(false);
     }

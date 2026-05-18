@@ -3,6 +3,7 @@ import * as LucideIcons from 'lucide-react';
 import { Bell, ShoppingBag, Mail, Clock, Package, ArrowRight, Sparkles } from 'lucide-react';
 import { shopProducts } from '../../data/books';
 import { subscribe } from '../../services/api';
+import toast from 'react-hot-toast';
 import './ComingSoon.css';
 
 // Removing numeric CountdownUnit as it is no longer needed
@@ -38,8 +39,9 @@ export default function ComingSoon() {
         await subscribe(email, 'Waitlist');
         setSubmitted(true);
         setEmail('');
+        toast.success('Joined waitlist successfully!');
       } catch (err) {
-        alert(err.message || 'Failed to join waitlist');
+        toast.error(err.message || 'Failed to join waitlist');
       }
     }
   };

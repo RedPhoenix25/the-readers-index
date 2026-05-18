@@ -1,8 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Lock, Trash2, Camera, LogOut, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { User, Lock, Trash2, Camera, LogOut, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { uploadAvatar } from '../../services/api';
+import { uploadAvatar, API_BASE } from '../../services/api';
+import toast from 'react-hot-toast';
 import './Settings.css';
 
 export default function Settings() {
@@ -13,8 +14,6 @@ export default function Settings() {
   // States
   const [activeTab, setActiveTab] = useState('profile');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [successMsg, setSuccessMsg] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
 
   // Form States
   const [username, setUsername] = useState(user?.username || '');
@@ -27,18 +26,6 @@ export default function Settings() {
     return null;
   }
 
-  const showSuccess = (msg) => {
-    setSuccessMsg(msg);
-    setErrorMsg('');
-    setTimeout(() => setSuccessMsg(''), 3000);
-  };
-
-  const showError = (msg) => {
-    setErrorMsg(msg);
-    setSuccessMsg('');
-    setTimeout(() => setErrorMsg(''), 4000);
-  };
-
   // Avatar Handlers
   const handleAvatarUpload = async (e) => {
     const file = e.target.files[0];
@@ -49,10 +36,10 @@ export default function Settings() {
       const res = await uploadAvatar(file, token);
       if (res.avatar) {
         updateUser({ avatar: res.avatar });
-        showSuccess('Avatar updated successfully');
+        toast.success('Avatar updated successfully');
       }
     } catch (err) {
-      showError('Failed to upload avatar.');
+      toast.error('Failed to upload avatar.');
     } finally {
       setUploadingAvatar(false);
     }
@@ -60,18 +47,18 @@ export default function Settings() {
 
   const handleRemoveAvatar = async () => {
     try {
-      const res = await fetch('/api/users/avatar', {
+      const res = await fetch(`${API_BASE}/users/avatar`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
         updateUser({ avatar: null });
-        showSuccess('Avatar removed');
+        toast.success('Avatar removed');
       } else {
         throw new Error('Failed');
       }
     } catch (err) {
-      showError('Failed to remove avatar.');
+      toast.error('Failed to remove avatar.');
     }
   };
 
@@ -79,7 +66,7 @@ export default function Settings() {
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/users/profile', {
+      const res = await fetch(`${API_BASE}/users/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -92,9 +79,9 @@ export default function Settings() {
       if (!res.ok) throw new Error(data.error || 'Failed to update');
       
       updateUser({ username: data.username, email: data.email });
-      showSuccess('Profile updated successfully');
+      toast.success('Profile updated successfully');
     } catch (err) {
-      showError(err.message);
+      toast.error(err.message);
     }
   };
 
@@ -104,7 +91,7 @@ export default function Settings() {
     if (!currentPassword || !newPassword) return;
 
     try {
-      const res = await fetch('/api/users/password', {
+      const res = await fetch(`${API_BASE}/users/password`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -118,32 +105,48 @@ export default function Settings() {
 
       setCurrentPassword('');
       setNewPassword('');
-      showSuccess('Password updated successfully');
+      toast.success('Password updated successfully');
     } catch (err) {
-      showError(err.message);
+      toast.error(err.message);
     }
   };
 
   // Delete Account
   const handleDeleteAccount = async () => {
-    if (!window.confirm('Are you absolutely sure you want to delete your account? This will permanently erase your archive and community thoughts.')) return;
-    if (!window.confirm('Final warning: This action cannot be undone.')) return;
+    toast((t) => (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <p style={{ margin: 0, fontWeight: 600 }}>Delete your account?</p>
+        <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>This will permanently erase your archive and thoughts.</p>
+        <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+          <button 
+            className="btn-sm" 
+            style={{ background: 'var(--accent-rose)', color: 'white', border: 'none' }}
+            onClick={async () => {
+              toast.dismiss(t.id);
+              try {
+                const res = await fetch(`${API_BASE}/users/account`, {
+                  method: 'DELETE',
+                  headers: { 'Authorization': `Bearer ${token}` }
+                });
 
-    try {
-      const res = await fetch('/api/users/account', {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (res.ok) {
-        logout();
-        navigate('/');
-      } else {
-        throw new Error('Failed to delete account');
-      }
-    } catch (err) {
-      showError(err.message);
-    }
+                if (res.ok) {
+                  logout();
+                  navigate('/');
+                  toast.success('Account deleted');
+                } else {
+                  throw new Error('Failed to delete account');
+                }
+              } catch (err) {
+                toast.error(err.message);
+              }
+            }}
+          >
+            Yes, Delete
+          </button>
+          <button className="btn-sm btn-ghost" onClick={() => toast.dismiss(t.id)}>Cancel</button>
+        </div>
+      </div>
+    ), { duration: 5000, position: 'top-center' });
   };
 
   return (
@@ -188,17 +191,6 @@ export default function Settings() {
           </aside>
 
           <main className="settings-content glass-card animate-scale-in">
-            {successMsg && (
-              <div className="settings-alert success">
-                <CheckCircle2 size={16} /> {successMsg}
-              </div>
-            )}
-            {errorMsg && (
-              <div className="settings-alert error">
-                 {errorMsg}
-              </div>
-            )}
-
             {/* PROFILE TAB */}
             {activeTab === 'profile' && (
               <div className="settings-panel">
