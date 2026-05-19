@@ -79,12 +79,117 @@
   color: var(--text-primary);
   font-size: 1rem;
   transition: all var(--transition-fast);
+  width: 100%;
 }
 
 .auth-form input:focus {
   border-color: var(--accent-gold);
   box-shadow: 0 0 0 4px var(--accent-gold-dim);
   outline: none;
+}
+
+/* Password input wrapper with eye toggle */
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper input {
+  padding-right: 3rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--transition-fast);
+  border-radius: var(--radius-sm);
+}
+
+.password-toggle:hover {
+  color: var(--accent-gold);
+}
+
+.password-toggle:focus {
+  outline: none;
+}
+
+/* Forgot password link */
+.forgot-password-link {
+  background: none;
+  border: none;
+  color: var(--accent-gold);
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-align: right;
+  padding: 0;
+  margin-top: -0.5rem;
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+.forgot-password-link:hover {
+  color: var(--accent-gold-light, #d4b85c);
+  text-decoration: underline;
+}
+
+/* Forgot password success state */
+.forgot-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+  text-align: center;
+  padding: var(--space-xl) 0;
+}
+
+.forgot-success__icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--accent-gold-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-gold);
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 168, 76, 0.2); }
+  50% { box-shadow: 0 0 0 12px rgba(201, 168, 76, 0); }
+}
+
+.forgot-success p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Back to sign in link */
+.auth-back-link {
+  background: none;
+  border: none;
+  color: var(--accent-gold);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color var(--transition-fast);
+}
+
+.auth-back-link:hover {
+  color: var(--accent-gold-light, #d4b85c);
 }
 
 .auth-footer {

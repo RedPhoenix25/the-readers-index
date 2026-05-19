@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Lock, Trash2, Camera, LogOut, ArrowLeft } from 'lucide-react';
+import { User, Lock, Trash2, Camera, LogOut, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { uploadAvatar, API_BASE } from '../../services/api';
 import toast from 'react-hot-toast';
@@ -14,6 +14,7 @@ export default function Settings() {
   // States
   const [activeTab, setActiveTab] = useState('profile');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Form States
   const [username, setUsername] = useState(user?.username || '');
@@ -263,22 +264,34 @@ export default function Settings() {
                 <form className="settings-form" onSubmit={handleUpdatePassword}>
                   <div className="form-group">
                     <label>Current Password</label>
-                    <input 
-                      type="password" 
-                      value={currentPassword} 
-                      onChange={(e) => setCurrentPassword(e.target.value)} 
-                      required 
-                    />
+                    <div className="password-input-wrapper">
+                      <input 
+                        type={showPassword ? 'text' : 'password'}
+                        value={currentPassword} 
+                        onChange={(e) => setCurrentPassword(e.target.value)} 
+                        required 
+                      />
+                      <button 
+                        type="button" 
+                        className="password-toggle"
+                        onClick={() => setShowPassword(!showPassword)}
+                        tabIndex={-1}
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
                   </div>
                   <div className="form-group">
                     <label>New Password</label>
-                    <input 
-                      type="password" 
-                      value={newPassword} 
-                      onChange={(e) => setNewPassword(e.target.value)} 
-                      required 
-                      minLength="6"
-                    />
+                    <div className="password-input-wrapper">
+                      <input 
+                        type={showPassword ? 'text' : 'password'}
+                        value={newPassword} 
+                        onChange={(e) => setNewPassword(e.target.value)} 
+                        required 
+                        minLength="6"
+                      />
+                    </div>
                   </div>
                   <button type="submit" className="btn btn-primary">Update Password</button>
                 </form>

@@ -6,6 +6,8 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   avatar: { type: String },
   isAdmin: { type: Boolean, default: false },
+  resetToken: { type: String },
+  resetTokenExpiry: { type: Date },
   shelf: [{
     book: { type: mongoose.Schema.Types.ObjectId, ref: 'Book' },
     status: { type: String, enum: ['Want to Read', 'Reading', 'Read'], default: 'Want to Read' },

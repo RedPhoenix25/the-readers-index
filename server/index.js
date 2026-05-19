@@ -5,6 +5,8 @@ const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const { connectMongoDB } = require('./database');
@@ -17,6 +19,18 @@ const CurrentlyReading = require('./models/CurrentlyReading');
 const app = express();
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || 'readers_index_secret_key_2026';
+
+// Email transporter for password resets
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER || 'thereadersindex@gmail.com',
+    pass: process.env.EMAIL_PASS // Gmail App Password (set in Render env vars)
+  }
+});
+
+// Frontend URL for reset links
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://the-readers-index.vercel.app';
 
 // Middleware
 app.use(cors());
@@ -85,6 +99,91 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
     const user = await User.findById(req.user.id).select('-password');
     if (!user) return res.status(404).json({ error: 'User not found' });
     res.json({ ...user.toObject(), id: user._id.toString() });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Forgot Password — sends a reset link via email
+app.post('/api/auth/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    
+    // Always return success to prevent email enumeration attacks
+    if (!user) {
+      return res.json({ message: 'If an account with that email exists, a reset link has been sent.' });
+    }
+
+    // Generate a secure reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour from now
+
+    user.resetToken = resetToken;
+    user.resetTokenExpiry = resetTokenExpiry;
+    await user.save();
+
+    const resetLink = `${FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+    // Send the email
+    await transporter.sendMail({
+      from: `"The Reader's Index" <${process.env.EMAIL_USER || 'thereadersindex@gmail.com'}>`,
+      to: email,
+      subject: 'Reset Your Password — The Reader\'s Index',
+      html: `
+        <div style="max-width: 520px; margin: 0 auto; font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #f5f0e8; padding: 2.5rem; border-radius: 12px; border: 1px solid rgba(201,168,76,0.2);">
+          <div style="text-align: center; margin-bottom: 1.5rem;">
+            <h1 style="color: #C9A84C; font-size: 1.6rem; margin: 0;">The Reader's Index</h1>
+            <p style="color: #a89f91; margin: 0.5rem 0 0;">Password Reset Request</p>
+          </div>
+          <p style="line-height: 1.6; color: #d4cfc7;">Hello <strong>${user.username}</strong>,</p>
+          <p style="line-height: 1.6; color: #d4cfc7;">We received a request to reset your password. Click the button below to choose a new one. This link expires in <strong>1 hour</strong>.</p>
+          <div style="text-align: center; margin: 2rem 0;">
+            <a href="${resetLink}" style="display: inline-block; padding: 14px 36px; background: linear-gradient(135deg, #C9A84C, #D4956A); color: #1a1a2e; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 1rem; letter-spacing: 0.02em;">Reset Password</a>
+          </div>
+          <p style="line-height: 1.6; color: #a89f91; font-size: 0.85rem;">If you didn't request this, you can safely ignore this email. Your password will remain unchanged.</p>
+          <hr style="border: none; border-top: 1px solid rgba(201,168,76,0.15); margin: 1.5rem 0;" />
+          <p style="text-align: center; color: #6b6560; font-size: 0.8rem; margin: 0;">© ${new Date().getFullYear()} The Reader's Index</p>
+        </div>
+      `
+    });
+
+    res.json({ message: 'If an account with that email exists, a reset link has been sent.' });
+  } catch (err) {
+    console.error('Forgot password error:', err);
+    res.status(500).json({ error: 'Failed to process request. Please try again.' });
+  }
+});
+
+// Reset Password — verifies token and updates password
+app.post('/api/auth/reset-password', async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+    
+    if (!token || !newPassword) {
+      return res.status(400).json({ error: 'Token and new password are required.' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+    }
+
+    const user = await User.findOne({
+      resetToken: token,
+      resetTokenExpiry: { $gt: new Date() } // token must not be expired
+    });
+
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid or expired reset link. Please request a new one.' });
+    }
+
+    // Hash the new password and clear the reset token
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.resetToken = undefined;
+    user.resetTokenExpiry = undefined;
+    await user.save();
+
+    res.json({ message: 'Password reset successfully. You can now sign in.' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

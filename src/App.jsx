@@ -13,6 +13,7 @@ import Admin from './pages/Admin/Admin';
 import Auth from './pages/Auth/Auth';
 import MyShelf from './pages/MyShelf/MyShelf';
 import Settings from './pages/Settings/Settings';
+import ResetPassword from './pages/ResetPassword/ResetPassword';
 import { Toaster } from 'react-hot-toast';
 
 function ScrollToTop() {
@@ -135,6 +136,7 @@ export default function App() {
           <Route path="/register" element={<Auth type="register" />} />
           <Route path="/my-shelf" element={<MyShelf />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
         </Routes>
       </main>
       {!shouldHideFooter && <Footer />}
