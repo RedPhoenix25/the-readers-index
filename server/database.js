@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 require('dotenv').config();
 
@@ -25,10 +24,15 @@ const dbPath = path.join(process.cwd(), 'server', 'database.sqlite');
 let sqliteDb = null;
 
 if (process.env.NODE_ENV !== 'production' || !process.env.MONGODB_URI) {
-  sqliteDb = new sqlite3.Database(dbPath, (err) => {
-    if (err) console.error('SQLite Error:', err.message);
-    else console.log('📁 Connected to legacy SQLite database');
-  });
+  try {
+    const sqlite3 = require('sqlite3').verbose();
+    sqliteDb = new sqlite3.Database(dbPath, (err) => {
+      if (err) console.error('SQLite Error:', err.message);
+      else console.log('📁 Connected to legacy SQLite database');
+    });
+  } catch (err) {
+    console.warn('⚠️ SQLite fallback failed to load:', err.message);
+  }
 }
 
 // Export connection status and database instances
