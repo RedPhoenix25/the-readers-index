@@ -173,7 +173,9 @@ app.post('/api/auth/forgot-password', async (req, res) => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          from: process.env.EMAIL_USER ? `"The Reader's Index" <${process.env.EMAIL_USER}>` : `"The Reader's Index" <onboarding@resend.dev>`,
+          from: (process.env.EMAIL_USER && !process.env.EMAIL_USER.endsWith('@gmail.com')) 
+            ? `"The Reader's Index" <${process.env.EMAIL_USER}>` 
+            : `"The Reader's Index" <onboarding@resend.dev>`,
           to: [email],
           subject: "Reset Your Password — The Reader's Index",
           html: htmlContent
