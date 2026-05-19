@@ -29,6 +29,15 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+// Verify email transporter on startup
+transporter.verify((error, success) => {
+  if (error) {
+    console.error('⚠️ SMTP Transporter configuration error:', error.message);
+  } else {
+    console.log('📧 SMTP Transporter is ready to send emails');
+  }
+});
+
 // Frontend URL for reset links
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://the-readers-index.vercel.app';
 
@@ -108,6 +117,15 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
 app.post('/api/auth/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
+    
+    // Check if email environment variables are configured
+    if (!process.env.EMAIL_PASS) {
+      console.error('⚠️ Forgot password error: EMAIL_PASS is missing in environment variables.');
+      return res.status(500).json({ 
+        error: 'Backend email service is not configured. Please set the EMAIL_PASS environment variable in Render.' 
+      });
+    }
+
     const user = await User.findOne({ email });
     
     // Always return success to prevent email enumeration attacks
@@ -151,7 +169,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     res.json({ message: 'If an account with that email exists, a reset link has been sent.' });
   } catch (err) {
     console.error('Forgot password error:', err);
-    res.status(500).json({ error: 'Failed to process request. Please try again.' });
+    res.status(500).json({ error: `Mail service error: ${err.message || 'Failed to send reset link.'}` });
   }
 });
 
