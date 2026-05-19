@@ -6,6 +6,31 @@ export const API_BASE = import.meta.env.MODE === 'production'
   : '/api';
 
 /**
+ * Resilient fetch wrapper with retry logic for Render cold starts.
+ * On the free tier, the backend sleeps after ~15min of inactivity and
+ * takes up to 50s to wake. This retries failed requests automatically.
+ */
+async function resilientFetch(url, options = {}, retries = 3) {
+  const delays = [2000, 5000, 10000]; // progressive backoff
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(url, options);
+      if (res.ok || res.status < 500) return res; // success or client error — don't retry
+      // Server error (5xx) — retry
+      if (attempt < retries) {
+        await new Promise(r => setTimeout(r, delays[attempt] || 5000));
+      }
+    } catch (err) {
+      // Network error (server still waking) — retry
+      if (attempt >= retries) throw err;
+      await new Promise(r => setTimeout(r, delays[attempt] || 5000));
+    }
+  }
+  // Final attempt — let it throw naturally
+  return fetch(url, options);
+}
+
+/**
  * Fetch books from the backend with optional filters
  * @param {Object} params - Query parameters
  * @param {string} params.genre - Filter by genre
@@ -28,7 +53,7 @@ export async function fetchBooks(params = {}) {
   if (params.limit) query.set('limit', params.limit);
   if (params.featured) query.set('featured', 'true');
 
-  const res = await fetch(`${API_BASE}/books?${query.toString()}`);
+  const res = await resilientFetch(`${API_BASE}/books?${query.toString()}`);
   if (!res.ok) throw new Error('Failed to fetch books');
   return res.json();
 }
@@ -39,7 +64,7 @@ export async function fetchBooks(params = {}) {
  * @returns {Promise<Object>}
  */
 export async function fetchBookById(id) {
-  const res = await fetch(`${API_BASE}/books/${id}`);
+  const res = await resilientFetch(`${API_BASE}/books/${id}`);
   if (!res.ok) throw new Error('Failed to fetch book');
   return res.json();
 }
@@ -49,7 +74,7 @@ export async function fetchBookById(id) {
  * @returns {Promise<Object|null>}
  */
 export async function fetchCurrentlyReading() {
-  const res = await fetch(`${API_BASE}/currently-reading`);
+  const res = await resilientFetch(`${API_BASE}/currently-reading`);
   if (!res.ok) throw new Error('Failed to fetch currently reading');
   return res.json();
 }
@@ -59,7 +84,7 @@ export async function fetchCurrentlyReading() {
  * @returns {Promise<string[]>}
  */
 export async function fetchGenres() {
-  const res = await fetch(`${API_BASE}/meta/genres`);
+  const res = await resilientFetch(`${API_BASE}/meta/genres`);
   if (!res.ok) throw new Error('Failed to fetch genres');
   return res.json();
 }
@@ -69,7 +94,7 @@ export async function fetchGenres() {
  * @returns {Promise<string[]>}
  */
 export async function fetchMoods() {
-  const res = await fetch(`${API_BASE}/meta/moods`);
+  const res = await resilientFetch(`${API_BASE}/meta/moods`);
   if (!res.ok) throw new Error('Failed to fetch moods');
   return res.json();
 }
@@ -157,7 +182,7 @@ export async function updateCurrentlyReading(data) {
  * @returns {Promise<Array>}
  */
 export async function fetchLists() {
-  const res = await fetch(`${API_BASE}/lists`);
+  const res = await resilientFetch(`${API_BASE}/lists`);
   if (!res.ok) throw new Error('Failed to fetch lists');
   return res.json();
 }
@@ -212,7 +237,7 @@ export async function deleteList(id) {
  * @returns {Promise<Array>}
  */
 export async function fetchListBooks(id) {
-  const res = await fetch(`${API_BASE}/lists/${id}/books`);
+  const res = await resilientFetch(`${API_BASE}/lists/${id}/books`);
   if (!res.ok) throw new Error('Failed to fetch list books');
   return res.json();
 }
@@ -238,7 +263,7 @@ export async function updateListBooks(id, bookIds) {
  * @returns {Promise<Array>}
  */
 export async function fetchSubscribers() {
-  const res = await fetch(`${API_BASE}/subscribers`);
+  const res = await resilientFetch(`${API_BASE}/subscribers`);
   if (!res.ok) throw new Error('Failed to fetch subscribers');
   return res.json();
 }
@@ -261,7 +286,7 @@ export async function deleteSubscriber(id) {
  * @returns {Promise<Array>}
  */
 export async function fetchUsers() {
-  const res = await fetch(`${API_BASE}/users`);
+  const res = await resilientFetch(`${API_BASE}/users`);
   if (!res.ok) throw new Error('Failed to fetch users');
   return res.json();
 }
