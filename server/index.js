@@ -22,11 +22,15 @@ const JWT_SECRET = process.env.JWT_SECRET || 'readers_index_secret_key_2026';
 
 // Email transporter for password resets
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true, // true for 465, false for other ports
   auth: {
     user: process.env.EMAIL_USER || 'thereadersindex@gmail.com',
     pass: process.env.EMAIL_PASS // Gmail App Password (set in Render env vars)
-  }
+  },
+  connectionTimeout: 10000, // 10 seconds
+  socketTimeout: 10000,     // 10 seconds
 });
 
 // Verify email transporter on startup
