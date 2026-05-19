@@ -380,6 +380,30 @@ app.post('/api/upload', upload.single('image'), (req, res) => {
   res.json({ url: `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}` });
 });
 
+app.post('/api/users/avatar', authenticateToken, upload.single('avatar'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+  try {
+    const avatarUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    const user = await User.findById(req.user.id);
+    user.avatar = avatarUrl;
+    await user.save();
+    res.json({ avatar: avatarUrl });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/users/avatar', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    user.avatar = null;
+    await user.save();
+    res.json({ message: 'Avatar removed' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Start Server
 app.listen(PORT, () => {
   console.log(`\n🚀 Sanctuary Backend (MongoDB) live on port ${PORT}`);

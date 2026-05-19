@@ -34,15 +34,25 @@ export default function ComingSoon() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (email) {
-      try {
-        await subscribe(email, 'Waitlist');
-        setSubmitted(true);
-        setEmail('');
-        toast.success('Joined waitlist successfully!');
-      } catch (err) {
-        toast.error(err.message || 'Failed to join waitlist');
-      }
+    
+    if (!email.trim()) {
+      toast.error('Please enter your email address');
+      return;
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+    try {
+      await subscribe(email, 'Waitlist');
+      setSubmitted(true);
+      setEmail('');
+      toast.success('Joined waitlist successfully!');
+    } catch (err) {
+      toast.error(err.message || 'Failed to join waitlist');
     }
   };
 
@@ -138,7 +148,7 @@ export default function ComingSoon() {
             </p>
 
             {!submitted ? (
-              <form className="waitlist-card__form" onSubmit={handleSubmit}>
+              <form className="waitlist-card__form" onSubmit={handleSubmit} noValidate>
                 <div className="waitlist-card__input-group">
                   <Mail size={18} className="waitlist-card__input-icon" />
                   <input

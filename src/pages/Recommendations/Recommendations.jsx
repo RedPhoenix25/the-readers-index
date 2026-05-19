@@ -144,6 +144,8 @@ export default function Recommendations() {
         quality: 1,
         pixelRatio: 3, // High quality for mobile screens
         skipFonts: false,
+        useCORS: true,
+        cacheBust: true,
       };
 
       const dataUrl = await toPng(resultsRef.current, options);
@@ -313,6 +315,7 @@ export default function Recommendations() {
                             <img 
                               src={book.cover} 
                               alt={book.title} 
+                              crossOrigin="anonymous"
                               style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                             />
                           </div>

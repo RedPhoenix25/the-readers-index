@@ -64,7 +64,18 @@ export default function Home() {
 
   const handleSubscribe = async (e) => {
     e.preventDefault();
-    if (!email) return;
+    
+    if (!email.trim()) {
+      toast.error('Please enter your email address');
+      return;
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
     setIsSubscribing(true);
     try {
       await subscribe(email);
@@ -278,7 +289,7 @@ export default function Home() {
                   <p>Check your inbox to confirm your subscription.</p>
                 </div>
               ) : (
-                <form className="newsletter__form" onSubmit={handleSubscribe}>
+                <form className="newsletter__form" onSubmit={handleSubscribe} noValidate>
                   <div className="newsletter__input-group">
                     <Mail size={18} className="newsletter__icon" />
                     <input
