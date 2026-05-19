@@ -123,10 +123,10 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     const { email } = req.body;
     
     // Check if email environment variables are configured
-    if (!process.env.EMAIL_PASS) {
-      console.error('⚠️ Forgot password error: EMAIL_PASS is missing in environment variables.');
+    if (!process.env.RESEND_API_KEY && !process.env.EMAIL_PASS) {
+      console.error('⚠️ Forgot password error: Neither RESEND_API_KEY nor EMAIL_PASS is set.');
       return res.status(500).json({ 
-        error: 'Backend email service is not configured. Please set the EMAIL_PASS environment variable in Render.' 
+        error: 'Backend email service is not configured. Please set the RESEND_API_KEY environment variable on Render to send via Resend API (recommended for Render Free tier).' 
       });
     }
 
@@ -146,29 +146,57 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     await user.save();
 
     const resetLink = `${FRONTEND_URL}/reset-password?token=${resetToken}`;
-
-    // Send the email
-    await transporter.sendMail({
-      from: `"The Reader's Index" <${process.env.EMAIL_USER || 'thereadersindex@gmail.com'}>`,
-      to: email,
-      subject: 'Reset Your Password — The Reader\'s Index',
-      html: `
-        <div style="max-width: 520px; margin: 0 auto; font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #f5f0e8; padding: 2.5rem; border-radius: 12px; border: 1px solid rgba(201,168,76,0.2);">
-          <div style="text-align: center; margin-bottom: 1.5rem;">
-            <h1 style="color: #C9A84C; font-size: 1.6rem; margin: 0;">The Reader's Index</h1>
-            <p style="color: #a89f91; margin: 0.5rem 0 0;">Password Reset Request</p>
-          </div>
-          <p style="line-height: 1.6; color: #d4cfc7;">Hello <strong>${user.username}</strong>,</p>
-          <p style="line-height: 1.6; color: #d4cfc7;">We received a request to reset your password. Click the button below to choose a new one. This link expires in <strong>1 hour</strong>.</p>
-          <div style="text-align: center; margin: 2rem 0;">
-            <a href="${resetLink}" style="display: inline-block; padding: 14px 36px; background: linear-gradient(135deg, #C9A84C, #D4956A); color: #1a1a2e; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 1rem; letter-spacing: 0.02em;">Reset Password</a>
-          </div>
-          <p style="line-height: 1.6; color: #a89f91; font-size: 0.85rem;">If you didn't request this, you can safely ignore this email. Your password will remain unchanged.</p>
-          <hr style="border: none; border-top: 1px solid rgba(201,168,76,0.15); margin: 1.5rem 0;" />
-          <p style="text-align: center; color: #6b6560; font-size: 0.8rem; margin: 0;">© ${new Date().getFullYear()} The Reader's Index</p>
+    const htmlContent = `
+      <div style="max-width: 520px; margin: 0 auto; font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #f5f0e8; padding: 2.5rem; border-radius: 12px; border: 1px solid rgba(201,168,76,0.2);">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+          <h1 style="color: #C9A84C; font-size: 1.6rem; margin: 0;">The Reader's Index</h1>
+          <p style="color: #a89f91; margin: 0.5rem 0 0;">Password Reset Request</p>
         </div>
-      `
-    });
+        <p style="line-height: 1.6; color: #d4cfc7;">Hello <strong>${user.username}</strong>,</p>
+        <p style="line-height: 1.6; color: #d4cfc7;">We received a request to reset your password. Click the button below to choose a new one. This link expires in <strong>1 hour</strong>.</p>
+        <div style="text-align: center; margin: 2rem 0;">
+          <a href="${resetLink}" style="display: inline-block; padding: 14px 36px; background: linear-gradient(135deg, #C9A84C, #D4956A); color: #1a1a2e; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 1rem; letter-spacing: 0.02em;">Reset Password</a>
+        </div>
+        <p style="line-height: 1.6; color: #a89f91; font-size: 0.85rem;">If you didn't request this, you can safely ignore this email. Your password will remain unchanged.</p>
+        <hr style="border: none; border-top: 1px solid rgba(201,168,76,0.15); margin: 1.5rem 0;" />
+        <p style="text-align: center; color: #6b6560; font-size: 0.8rem; margin: 0;">© ${new Date().getFullYear()} The Reader's Index</p>
+      </div>
+    `;
+
+    // 1. Send via Resend HTTP REST API if key is provided (never blocked by Render Free)
+    if (process.env.RESEND_API_KEY) {
+      console.log('Sending reset email via Resend HTTP API...');
+      const resendResponse = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: process.env.EMAIL_USER ? `"The Reader's Index" <${process.env.EMAIL_USER}>` : `"The Reader's Index" <onboarding@resend.dev>`,
+          to: [email],
+          subject: "Reset Your Password — The Reader's Index",
+          html: htmlContent
+        })
+      });
+
+      const resendData = await resendResponse.json();
+      if (!resendResponse.ok) {
+        throw new Error(resendData.message || 'Resend HTTP API failure');
+      }
+      console.log('Reset email sent successfully via Resend!');
+    } 
+    // 2. Fallback to standard Nodemailer SMTP
+    else {
+      console.log('Sending reset email via standard SMTP...');
+      await transporter.sendMail({
+        from: `"The Reader's Index" <${process.env.EMAIL_USER || 'thereadersindex@gmail.com'}>`,
+        to: email,
+        subject: "Reset Your Password — The Reader's Index",
+        html: htmlContent
+      });
+      console.log('Reset email sent successfully via SMTP!');
+    }
 
     res.json({ message: 'If an account with that email exists, a reset link has been sent.' });
   } catch (err) {
