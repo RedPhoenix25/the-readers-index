@@ -67,6 +67,9 @@ export default function Admin() {
     cover: '',
     rating: 5,
     genre: '',
+    genres: '',
+    tropes: '',
+    pacing: '',
     mood: '',
     review: '',
     quote: '',
@@ -170,7 +173,10 @@ export default function Admin() {
       setEditingBook(book);
       setFormData({
         ...book,
-        mood: Array.isArray(book.mood) ? book.mood.join(', ') : book.mood
+        mood: Array.isArray(book.mood) ? book.mood.join(', ') : book.mood,
+        genres: Array.isArray(book.genres) ? book.genres.join(', ') : book.genres || '',
+        tropes: Array.isArray(book.tropes) ? book.tropes.join(', ') : book.tropes || '',
+        pacing: book.pacing || ''
       });
     } else {
       setEditingBook(null);
@@ -180,6 +186,9 @@ export default function Admin() {
         cover: '',
         rating: 5,
         genre: '',
+        genres: '',
+        tropes: '',
+        pacing: '',
         mood: '',
         review: '',
         quote: '',
@@ -197,7 +206,9 @@ export default function Admin() {
     try {
       const payload = {
         ...formData,
-        mood: formData.mood.split(',').map(m => m.trim()),
+        mood: typeof formData.mood === 'string' ? formData.mood.split(',').map(m => m.trim()).filter(Boolean) : formData.mood,
+        genres: typeof formData.genres === 'string' ? formData.genres.split(',').map(m => m.trim()).filter(Boolean) : formData.genres,
+        tropes: typeof formData.tropes === 'string' ? formData.tropes.split(',').map(m => m.trim()).filter(Boolean) : formData.tropes,
         rating: parseFloat(formData.rating),
         pages: parseInt(formData.pages),
         year: parseInt(formData.year)
@@ -754,8 +765,25 @@ export default function Admin() {
                   </div>
                 </div>
                 <div className="form-group">
-                  <label>Genre</label>
+                  <label>Primary Genre</label>
                   <input value={formData.genre} onChange={e => setFormData({...formData, genre: e.target.value})} required />
+                </div>
+                <div className="form-group full">
+                  <label>All Genres (comma separated)</label>
+                  <input placeholder="e.g. Fantasy, Mystery, Romance" value={formData.genres} onChange={e => setFormData({...formData, genres: e.target.value})} />
+                </div>
+                <div className="form-group full">
+                  <label>Tropes (comma separated)</label>
+                  <input placeholder="e.g. Found Family, Enemies to Lovers" value={formData.tropes} onChange={e => setFormData({...formData, tropes: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>Pacing</label>
+                  <select value={formData.pacing} onChange={e => setFormData({...formData, pacing: e.target.value})} required className="form-control" style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-elevated)', color: 'var(--text-light)' }}>
+                    <option value="">Select pacing...</option>
+                    <option value="Fast">Fast</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Slow">Slow</option>
+                  </select>
                 </div>
                 <div className="form-group">
                   <label>Rating (0-5)</label>

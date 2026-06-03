@@ -290,6 +290,36 @@ app.get('/api/books/:id', async (req, res) => {
   }
 });
 
+app.post('/api/books', async (req, res) => {
+  try {
+    const book = new Book(req.body);
+    await book.save();
+    res.status(201).json(transformBook(book));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/books/:id', async (req, res) => {
+  try {
+    const book = await Book.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!book) return res.status(404).json({ error: 'Book not found' });
+    res.json(transformBook(book));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/books/:id', async (req, res) => {
+  try {
+    const book = await Book.findByIdAndDelete(req.params.id);
+    if (!book) return res.status(404).json({ error: 'Book not found' });
+    res.json({ message: 'Book deleted' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/books/:id/engagement', async (req, res) => {
   try {
     const book = await Book.findById(req.params.id).populate('comments.user', 'username');
