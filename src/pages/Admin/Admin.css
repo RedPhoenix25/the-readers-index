@@ -447,7 +447,8 @@
 }
 
 .form-group input:focus, 
-.form-group textarea:focus {
+.form-group textarea:focus,
+.form-group select:focus {
   border-color: var(--accent-gold);
   outline: none;
 }

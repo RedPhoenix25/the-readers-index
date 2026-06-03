@@ -778,7 +778,7 @@ export default function Admin() {
                 </div>
                 <div className="form-group">
                   <label>Pacing</label>
-                  <select value={formData.pacing} onChange={e => setFormData({...formData, pacing: e.target.value})} required className="form-control" style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-elevated)', color: 'var(--text-light)' }}>
+                  <select value={formData.pacing} onChange={e => setFormData({...formData, pacing: e.target.value})} required>
                     <option value="">Select pacing...</option>
                     <option value="Fast">Fast</option>
                     <option value="Medium">Medium</option>
