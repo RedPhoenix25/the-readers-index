@@ -59,11 +59,15 @@ export default function Recommendations() {
     const moodCounts = {};
     let preferredGenre = null;
     let preferredLength = null;
+    let preferredPacing = null;
+    let preferredTrope = null;
 
     answers.forEach((ans) => {
       if (ans.mood) moodCounts[ans.mood] = (moodCounts[ans.mood] || 0) + 1;
       if (ans.genre) preferredGenre = ans.genre;
       if (ans.length) preferredLength = ans.length;
+      if (ans.pacing) preferredPacing = ans.pacing;
+      if (ans.trope) preferredTrope = ans.trope;
     });
 
     const scoredBooks = allBooks
@@ -76,8 +80,18 @@ export default function Recommendations() {
         });
 
         // 2. Genre Priority (+5 points)
-        if (preferredGenre && book.genre === preferredGenre) {
+        if (preferredGenre && book.genres && book.genres.includes(preferredGenre)) {
           score += 5;
+        }
+
+        // 2b. Pacing Priority (+3 points)
+        if (preferredPacing && book.pacing === preferredPacing) {
+          score += 3;
+        }
+
+        // 2c. Trope Priority (+4 points)
+        if (preferredTrope && book.tropes && book.tropes.includes(preferredTrope)) {
+          score += 4;
         }
 
         // 3. Page Count Logic
