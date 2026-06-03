@@ -519,7 +519,7 @@ app.delete('/api/subscribers/:id', async (req, res) => {
   }
 });
 
-// Multer & Uploads
+// Multer & Uploads (using memory/temporary storage and converting directly to persistent base64 in MongoDB)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'uploads/'),
   filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
@@ -528,16 +528,38 @@ const upload = multer({ storage });
 
 app.post('/api/upload', upload.single('image'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file' });
-  res.json({ url: `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}` });
+  try {
+    const fileBuffer = fs.readFileSync(req.file.path);
+    const base64Image = fileBuffer.toString('base64');
+    const dataUrl = `data:${req.file.mimetype};base64,${base64Image}`;
+    
+    // Safely clean up the temp file
+    fs.unlink(req.file.path, (err) => {
+      if (err) console.error('⚠️ Error unlinking temp file:', err);
+    });
+
+    res.json({ url: dataUrl });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/users/avatar', authenticateToken, upload.single('avatar'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
   try {
-    const avatarUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    const fileBuffer = fs.readFileSync(req.file.path);
+    const base64Image = fileBuffer.toString('base64');
+    const avatarUrl = `data:${req.file.mimetype};base64,${base64Image}`;
+
     const user = await User.findById(req.user.id);
     user.avatar = avatarUrl;
     await user.save();
+
+    // Safely clean up the temp file
+    fs.unlink(req.file.path, (err) => {
+      if (err) console.error('⚠️ Error unlinking temp file:', err);
+    });
+
     res.json({ avatar: avatarUrl });
   } catch (err) {
     res.status(500).json({ error: err.message });
