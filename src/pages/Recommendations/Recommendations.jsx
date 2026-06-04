@@ -61,6 +61,7 @@ export default function Recommendations() {
     let preferredLength = null;
     let preferredPacing = null;
     let preferredTrope = null;
+    let dealbreaker = null;
 
     answers.forEach((ans) => {
       if (ans.mood) moodCounts[ans.mood] = (moodCounts[ans.mood] || 0) + 1;
@@ -68,9 +69,17 @@ export default function Recommendations() {
       if (ans.length) preferredLength = ans.length;
       if (ans.pacing) preferredPacing = ans.pacing;
       if (ans.trope) preferredTrope = ans.trope;
+      if (ans.dealbreaker) dealbreaker = ans.dealbreaker;
     });
 
     const scoredBooks = allBooks
+      .filter((book) => {
+        // Algorithm 3: Negative Constraints (Dealbreakers)
+        if (dealbreaker === 'Romance' && book.genres && book.genres.includes('Romance')) return false;
+        if (dealbreaker === 'Sci-Fi/Fantasy' && book.genres && (book.genres.includes('Sci-Fi') || book.genres.includes('Fantasy'))) return false;
+        if (dealbreaker === 'Bittersweet' && book.mood && book.mood.includes('Bittersweet')) return false;
+        return true;
+      })
       .map((book) => {
         let score = 0;
 
@@ -236,7 +245,7 @@ export default function Recommendations() {
                 </div>
                 <h2>The Book Taste Quiz</h2>
                 <p>
-                  Answer 6 quick questions about your reading mood and we'll recommend
+                  Answer 9 quick questions about your reading mood and we'll recommend
                   your perfect next read from our collection.
                 </p>
                 <button

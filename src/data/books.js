@@ -409,6 +409,16 @@ export const quizQuestions = [
       { text: "Sparks flying (Enemies to Lovers/Romance)", trope: "Enemies to Lovers", icon: "Heart" },
     ],
   },
+  {
+    id: 9,
+    question: "Is there anything you absolutely want to avoid right now?",
+    options: [
+      { text: "No Romance, please", dealbreaker: "Romance", icon: "HeartOff" },
+      { text: "No Sci-Fi or Fantasy", dealbreaker: "Sci-Fi/Fantasy", icon: "Ghost" },
+      { text: "No heavy or sad topics", dealbreaker: "Bittersweet", icon: "CloudRain" },
+      { text: "I'm open to anything!", dealbreaker: "None", icon: "Sparkles" },
+    ],
+  },
 ];
 
 
