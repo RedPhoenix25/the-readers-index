@@ -92,12 +92,12 @@ export default function Recommendations() {
         let score = 0;
 
         // 1. Mood Matching (Weighted)
-        book.mood.forEach((m) => {
+        (book.mood || []).forEach((m) => {
           if (moodCounts[m]) score += moodCounts[m] * moodWeight; 
         });
 
         // 2. Genre Priority
-        if (preferredGenre && book.genres && book.genres.includes(preferredGenre)) {
+        if (preferredGenre && (book.genres || []).includes(preferredGenre)) {
           score += genreWeight;
         }
 
@@ -107,7 +107,7 @@ export default function Recommendations() {
         }
 
         // 2c. Trope Priority
-        if (preferredTrope && book.tropes && book.tropes.includes(preferredTrope)) {
+        if (preferredTrope && (book.tropes || []).includes(preferredTrope)) {
           score += 4;
         }
 

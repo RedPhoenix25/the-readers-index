@@ -290,6 +290,108 @@ app.get('/api/books/:id', async (req, res) => {
   }
 });
 
+app.post('/api/books/auto-fill', async (req, res) => {
+  try {
+    const { title, author } = req.body;
+    if (!title || !author) {
+      return res.status(400).json({ error: 'Title and author are required' });
+    }
+
+    // 1. Fetch factual data from Google Books API
+    let cover = '';
+    let year = new Date().getFullYear();
+    let pages = 300;
+    
+    try {
+      const gBooksRes = await fetch(`https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(title)}+inauthor:${encodeURIComponent(author)}&langRestrict=en`);
+      const gBooksData = await gBooksRes.json();
+      
+      if (gBooksData.items && gBooksData.items.length > 0) {
+        const volumeInfo = gBooksData.items[0].volumeInfo;
+        if (volumeInfo.imageLinks) {
+          cover = volumeInfo.imageLinks.thumbnail || volumeInfo.imageLinks.smallThumbnail || '';
+          // Upgrade thumbnail to higher res if possible by removing zoom=1
+          if (cover) cover = cover.replace('&edge=curl', '').replace('zoom=1', 'zoom=0');
+        }
+        if (volumeInfo.publishedDate) {
+          year = parseInt(volumeInfo.publishedDate.substring(0, 4));
+        }
+        if (volumeInfo.pageCount) {
+          pages = volumeInfo.pageCount;
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch from Google Books API:', err);
+      // Non-fatal, continue to Gemini
+    }
+
+    // 2. Fetch creative data from Google Gemini API
+    let aiData = { review: '', quote: '', genres: [], tropes: [], pacing: 'Medium', mood: [] };
+    
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        const { GoogleGenAI } = require('@google/genai');
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        
+        const prompt = `Analyze the book "${title}" by "${author}". 
+Return a strict JSON object (NO markdown formatting, just raw JSON) with the following exact keys:
+- "review": A beautiful 3 sentence aesthetic review of the book.
+- "quote": A famous or highly memorable quote from the book.
+- "genres": An array of up to 3 genres that perfectly fit this book. Be creative (e.g. "Cyberpunk", "Cozy Mystery").
+- "tropes": An array of up to 4 tropes. Use your full creative vocabulary (e.g. "Enemies to Lovers", "Found Family"). Do not restrict yourself.
+- "pacing": A string that is exactly one of: "Fast", "Medium", or "Slow".
+- "mood": An array of up to 3 moods. Try to include at least one of these core moods if they fit: "Cozy", "Mysterious", "Thrilling", "Bittersweet", "Epic", "Atmospheric", "Heartwarming", "Inspiring", "Intellectual", "Romantic", "Reflective", "Empowering".
+
+Example format:
+{
+  "review": "A sprawling epic...",
+  "quote": "I must not fear...",
+  "genres": ["Sci-Fi", "Space Opera"],
+  "tropes": ["Chosen One", "Political Intrigue"],
+  "pacing": "Medium",
+  "mood": ["Epic", "Intellectual", "Atmospheric"]
+}`;
+        
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: prompt,
+        });
+
+        let aiText = response.text.trim();
+        // Clean up markdown if AI includes it
+        if (aiText.startsWith('\`\`\`json')) {
+          aiText = aiText.substring(7);
+        }
+        if (aiText.endsWith('\`\`\`')) {
+          aiText = aiText.substring(0, aiText.length - 3);
+        }
+
+        aiData = JSON.parse(aiText);
+      } catch (err) {
+        console.error('Failed to generate from Gemini API:', err);
+      }
+    } else {
+      console.warn('No GEMINI_API_KEY found, returning empty AI data');
+    }
+
+    // 3. Combine and return
+    res.json({
+      cover: cover || aiData.cover || '',
+      year: year || aiData.year || new Date().getFullYear(),
+      pages: pages || aiData.pages || 300,
+      review: aiData.review || '',
+      quote: aiData.quote || '',
+      genres: aiData.genres || [],
+      tropes: aiData.tropes || [],
+      pacing: aiData.pacing || 'Medium',
+      mood: aiData.mood || []
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/books', async (req, res) => {
   try {
     const book = new Book(req.body);

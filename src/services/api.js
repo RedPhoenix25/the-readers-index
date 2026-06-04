@@ -70,6 +70,22 @@ export async function fetchBookById(id) {
 }
 
 /**
+ * Fetch AI Auto-fill data for a book
+ * @param {string} title 
+ * @param {string} author 
+ * @returns {Promise<Object>}
+ */
+export async function fetchAiAutofill(title, author) {
+  const res = await resilientFetch(`${API_BASE}/books/auto-fill`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title, author })
+  });
+  if (!res.ok) throw new Error('Failed to fetch AI data');
+  return res.json();
+}
+
+/**
  * Fetch the currently reading book
  * @returns {Promise<Object|null>}
  */

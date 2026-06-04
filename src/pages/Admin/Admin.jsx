@@ -40,7 +40,8 @@ import {
   deleteSubscriber,
   fetchUsers,
   deleteUser,
-  uploadImage
+  uploadImage,
+  fetchAiAutofill
 } from '../../services/api';
 import './Admin.css';
 
@@ -57,6 +58,7 @@ export default function Admin() {
   const [readingStatus, setReadingStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isAutoFilling, setIsAutoFilling] = useState(false);
   
   // Form State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -302,6 +304,36 @@ export default function Admin() {
       toast.error('Failed to save list');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleAutoFill = async () => {
+    if (!formData.title || !formData.author) {
+      toast.error('Please enter a Title and Author first');
+      return;
+    }
+    setIsAutoFilling(true);
+    const loadingToast = toast.loading('Consulting the AI Librarian...');
+    try {
+      const aiData = await fetchAiAutofill(formData.title, formData.author);
+      setFormData(prev => ({
+        ...prev,
+        cover: aiData.cover || prev.cover,
+        review: aiData.review || prev.review,
+        quote: aiData.quote || prev.quote,
+        genres: aiData.genres ? aiData.genres.join(', ') : prev.genres,
+        tropes: aiData.tropes ? aiData.tropes.join(', ') : prev.tropes,
+        pacing: aiData.pacing || prev.pacing,
+        mood: aiData.mood ? aiData.mood.join(', ') : prev.mood,
+        year: aiData.year || prev.year,
+        pages: aiData.pages || prev.pages,
+        genre: (aiData.genres && aiData.genres.length > 0) ? aiData.genres[0] : prev.genre
+      }));
+      toast.success('Form magically populated!', { id: loadingToast });
+    } catch (err) {
+      toast.error('Failed to auto-fill data. Is the API key set?', { id: loadingToast });
+    } finally {
+      setIsAutoFilling(false);
     }
   };
 
@@ -739,13 +771,25 @@ export default function Admin() {
             </div>
             <form onSubmit={handleSaveBook} className="admin-modal-form">
               <div className="form-grid">
-                <div className="form-group">
-                  <label>Title</label>
-                  <input value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} required />
-                </div>
-                <div className="form-group">
-                  <label>Author</label>
-                  <input value={formData.author} onChange={e => setFormData({...formData, author: e.target.value})} required />
+                <div className="form-group full" style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', background: 'var(--bg-glass-subtle)', padding: '1rem', borderRadius: '12px' }}>
+                  <div style={{ flex: 1 }}>
+                    <label>Title</label>
+                    <input value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} required />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label>Author</label>
+                    <input value={formData.author} onChange={e => setFormData({...formData, author: e.target.value})} required />
+                  </div>
+                  <button 
+                    type="button" 
+                    className="btn btn-primary" 
+                    onClick={handleAutoFill} 
+                    disabled={isAutoFilling || !formData.title || !formData.author}
+                    style={{ background: 'linear-gradient(135deg, #a855f7, #6366f1)', border: 'none', height: '42px', display: 'flex', alignItems: 'center' }}
+                  >
+                    {isAutoFilling ? <Loader size={18} className="spin" /> : <Sparkles size={18} />}
+                    {isAutoFilling ? ' Thinking...' : ' Auto-Fill'}
+                  </button>
                 </div>
                 <div className="form-group full">
                   <label>Cover URL or Upload Photo</label>
