@@ -62,6 +62,7 @@ export default function Recommendations() {
     let preferredPacing = null;
     let preferredTrope = null;
     let dealbreaker = null;
+    let mainPriority = null;
 
     answers.forEach((ans) => {
       if (ans.mood) moodCounts[ans.mood] = (moodCounts[ans.mood] || 0) + 1;
@@ -70,7 +71,14 @@ export default function Recommendations() {
       if (ans.pacing) preferredPacing = ans.pacing;
       if (ans.trope) preferredTrope = ans.trope;
       if (ans.dealbreaker) dealbreaker = ans.dealbreaker;
+      if (ans.priority) mainPriority = ans.priority;
     });
+
+    // Algorithm 4: Dynamic Weighting Multipliers
+    const moodWeight = mainPriority === 'mood' ? 4 : 2;
+    const genreWeight = mainPriority === 'genre' ? 10 : 5;
+    const lengthWeightPos = mainPriority === 'length' ? 6 : 3;
+    const lengthWeightNeg = mainPriority === 'length' ? 10 : 5;
 
     const scoredBooks = allBooks
       .filter((book) => {
@@ -85,37 +93,42 @@ export default function Recommendations() {
 
         // 1. Mood Matching (Weighted)
         book.mood.forEach((m) => {
-          if (moodCounts[m]) score += moodCounts[m] * 2; // Mood is core
+          if (moodCounts[m]) score += moodCounts[m] * moodWeight; 
         });
 
-        // 2. Genre Priority (+5 points)
+        // 2. Genre Priority
         if (preferredGenre && book.genres && book.genres.includes(preferredGenre)) {
-          score += 5;
+          score += genreWeight;
         }
 
-        // 2b. Pacing Priority (+3 points)
+        // 2b. Pacing Priority
         if (preferredPacing && book.pacing === preferredPacing) {
           score += 3;
         }
 
-        // 2c. Trope Priority (+4 points)
+        // 2c. Trope Priority
         if (preferredTrope && book.tropes && book.tropes.includes(preferredTrope)) {
           score += 4;
         }
 
         // 3. Page Count Logic
         if (preferredLength) {
-          if (preferredLength === 'Short' && book.pages < 300) score += 3;
-          if (preferredLength === 'Short' && book.pages > 500) score -= 5;
-          if (preferredLength === 'Medium' && book.pages >= 300 && book.pages <= 450) score += 3;
-          if (preferredLength === 'Long' && book.pages > 450) score += 3;
-          if (preferredLength === 'Long' && book.pages < 250) score -= 5;
+          if (preferredLength === 'Short' && book.pages < 300) score += lengthWeightPos;
+          if (preferredLength === 'Short' && book.pages > 500) score -= lengthWeightNeg;
+          if (preferredLength === 'Medium' && book.pages >= 300 && book.pages <= 450) score += lengthWeightPos;
+          if (preferredLength === 'Long' && book.pages > 450) score += lengthWeightPos;
+          if (preferredLength === 'Long' && book.pages < 250) score -= lengthWeightNeg;
         }
+
+        // Algorithm 5: Randomization/Tie-Breaking
+        // Add a tiny random fraction to the score to break ties dynamically
+        const randomTieBreaker = Math.random() * 0.05;
+        score += (book.rating * 0.1) + randomTieBreaker;
 
         return { ...book, score };
       })
-      .filter((b) => b.score > 0)
-      .sort((a, b) => b.score - a.score || b.rating - a.rating);
+      .filter((b) => b.score > Math.floor(b.rating * 0.1) + 0.05) // Keep only books that scored > 0 before tie-breakers
+      .sort((a, b) => b.score - a.score);
 
     // 4. Discovery Mode
     // Keep top 3 perfect matches
@@ -245,7 +258,7 @@ export default function Recommendations() {
                 </div>
                 <h2>The Book Taste Quiz</h2>
                 <p>
-                  Answer 9 quick questions about your reading mood and we'll recommend
+                  Answer 10 quick questions about your reading mood and we'll recommend
                   your perfect next read from our collection.
                 </p>
                 <button

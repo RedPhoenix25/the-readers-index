@@ -419,6 +419,16 @@ export const quizQuestions = [
       { text: "I'm open to anything!", dealbreaker: "None", icon: "Sparkles" },
     ],
   },
+  {
+    id: 10,
+    question: "Finally, what is your biggest priority for this next read?",
+    options: [
+      { text: "The exact right Vibe/Mood", priority: "mood", icon: "Sparkles" },
+      { text: "A specific Genre", priority: "genre", icon: "BookOpen" },
+      { text: "A specific Length", priority: "length", icon: "Timer" },
+      { text: "Just give me a good book", priority: "none", icon: "Star" },
+    ],
+  },
 ];
 
 
