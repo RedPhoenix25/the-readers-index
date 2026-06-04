@@ -108,17 +108,38 @@ export default function Recommendations() {
       .filter((b) => b.score > 0)
       .sort((a, b) => b.score - a.score || b.rating - a.rating);
 
-    if (scoredBooks.length <= 4) return scoredBooks;
-
     // 4. Discovery Mode
     // Keep top 3 perfect matches
     const top3 = scoredBooks.slice(0, 3);
-    // For the 4th slot, pick a highly rated book (>= 4.2) that didn't make top 3 
-    // but is still relevant (has at least some score)
-    const others = scoredBooks.slice(3);
-    const discoveryBook = others.find(b => b.rating >= 4.2) || others[0];
+    const top3Ids = top3.map(b => b.id);
+    
+    // Potential discovery pool: books not in top 3
+    const discoveryPool = allBooks.filter(b => !top3Ids.includes(b.id));
 
-    return [...top3, discoveryBook];
+    // Algorithm 2: Try to find a book with a matching mood but different genre
+    let discoveryBook = discoveryPool.find(b => {
+      const hasMoodMatch = b.mood && b.mood.some(m => moodCounts[m] > 0);
+      const isDifferentGenre = preferredGenre ? (b.genres && !b.genres.includes(preferredGenre)) : true;
+      return hasMoodMatch && isDifferentGenre && b.rating >= 4.0;
+    });
+
+    // Fallback 1: Just a different genre, regardless of mood
+    if (!discoveryBook && preferredGenre) {
+      discoveryBook = discoveryPool.find(b => 
+        b.genres && !b.genres.includes(preferredGenre) && b.rating >= 4.0
+      );
+    }
+
+    // Fallback 2: Just highly rated
+    if (!discoveryBook) {
+      discoveryBook = discoveryPool.find(b => b.rating >= 4.2) || discoveryPool[0];
+    }
+
+    if (discoveryBook) {
+      return [...top3, discoveryBook];
+    }
+    
+    return top3;
   };
 
   const resetQuiz = () => {
