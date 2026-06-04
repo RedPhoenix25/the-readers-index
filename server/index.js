@@ -299,8 +299,8 @@ app.post('/api/books/auto-fill', async (req, res) => {
 
     // 1. Fetch factual data from Google Books API
     let cover = '';
-    let year = new Date().getFullYear();
-    let pages = 300;
+    let year = null;
+    let pages = null;
     
     try {
       const gBooksRes = await fetch(`https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(title)}+inauthor:${encodeURIComponent(author)}&langRestrict=en`);
@@ -310,7 +310,6 @@ app.post('/api/books/auto-fill', async (req, res) => {
         const volumeInfo = gBooksData.items[0].volumeInfo;
         if (volumeInfo.imageLinks) {
           cover = volumeInfo.imageLinks.thumbnail || volumeInfo.imageLinks.smallThumbnail || '';
-          // Upgrade thumbnail to higher res if possible by removing zoom=1
           if (cover) cover = cover.replace('&edge=curl', '').replace('zoom=1', 'zoom=0');
         }
         if (volumeInfo.publishedDate) {
@@ -322,11 +321,10 @@ app.post('/api/books/auto-fill', async (req, res) => {
       }
     } catch (err) {
       console.error('Failed to fetch from Google Books API:', err);
-      // Non-fatal, continue to Gemini
     }
 
     // 2. Fetch creative data from Google Gemini API
-    let aiData = { review: '', quote: '', genres: [], tropes: [], pacing: 'Medium', mood: [] };
+    let aiData = { review: '', quote: '', genres: [], tropes: [], pacing: 'Medium', mood: [], year: null, pages: null };
     
     if (process.env.GEMINI_API_KEY) {
       try {
@@ -337,19 +335,23 @@ app.post('/api/books/auto-fill', async (req, res) => {
 Return a strict JSON object (NO markdown formatting, just raw JSON) with the following exact keys:
 - "review": A beautiful 3 sentence aesthetic review of the book.
 - "quote": A famous or highly memorable quote from the book.
-- "genres": An array of up to 3 genres that perfectly fit this book. Be creative (e.g. "Cyberpunk", "Cozy Mystery").
-- "tropes": An array of up to 4 tropes. Use your full creative vocabulary (e.g. "Enemies to Lovers", "Found Family"). Do not restrict yourself.
+- "genres": An array of up to 3 entirely DISTINCT genres. Do not be repetitive (e.g. if you use "High Fantasy", do NOT also use "Dragon Rider Fantasy" or "Coming-of-Age Fantasy"). 
+- "tropes": An array of up to 4 tropes. Use your full creative vocabulary.
 - "pacing": A string that is exactly one of: "Fast", "Medium", or "Slow".
 - "mood": An array of up to 3 moods. Try to include at least one of these core moods if they fit: "Cozy", "Mysterious", "Thrilling", "Bittersweet", "Epic", "Atmospheric", "Heartwarming", "Inspiring", "Intellectual", "Romantic", "Reflective", "Empowering".
+- "year": The year the book was originally published (as an integer).
+- "pages": The approximate number of pages (as an integer).
 
 Example format:
 {
   "review": "A sprawling epic...",
   "quote": "I must not fear...",
-  "genres": ["Sci-Fi", "Space Opera"],
+  "genres": ["Sci-Fi", "Political Thriller"],
   "tropes": ["Chosen One", "Political Intrigue"],
   "pacing": "Medium",
-  "mood": ["Epic", "Intellectual", "Atmospheric"]
+  "mood": ["Epic", "Intellectual", "Atmospheric"],
+  "year": 1965,
+  "pages": 412
 }`;
         
         const response = await ai.models.generateContent({
@@ -358,13 +360,8 @@ Example format:
         });
 
         let aiText = response.text.trim();
-        // Clean up markdown if AI includes it
-        if (aiText.startsWith('\`\`\`json')) {
-          aiText = aiText.substring(7);
-        }
-        if (aiText.endsWith('\`\`\`')) {
-          aiText = aiText.substring(0, aiText.length - 3);
-        }
+        if (aiText.startsWith('\`\`\`json')) aiText = aiText.substring(7);
+        if (aiText.endsWith('\`\`\`')) aiText = aiText.substring(0, aiText.length - 3);
 
         aiData = JSON.parse(aiText);
       } catch (err) {
@@ -376,7 +373,7 @@ Example format:
 
     // 3. Combine and return
     res.json({
-      cover: cover || aiData.cover || '',
+      cover: cover || '',
       year: year || aiData.year || new Date().getFullYear(),
       pages: pages || aiData.pages || 300,
       review: aiData.review || '',
