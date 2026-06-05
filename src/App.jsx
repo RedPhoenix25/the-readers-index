@@ -14,6 +14,9 @@ import Auth from './pages/Auth/Auth';
 import MyShelf from './pages/MyShelf/MyShelf';
 import Settings from './pages/Settings/Settings';
 import ResetPassword from './pages/ResetPassword/ResetPassword';
+import Shop from './pages/Shop/Shop';
+import ProductDetails from './pages/Shop/ProductDetails';
+import Checkout from './pages/Shop/Checkout';
 import { Toaster } from 'react-hot-toast';
 
 function ScrollToTop() {
@@ -137,6 +140,9 @@ export default function App() {
           <Route path="/my-shelf" element={<MyShelf />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/shop/:id" element={<ProductDetails />} />
+          <Route path="/shop/checkout" element={<Checkout />} />
         </Routes>
       </main>
       {!shouldHideFooter && <Footer />}

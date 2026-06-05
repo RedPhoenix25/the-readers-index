@@ -412,3 +412,18 @@ export async function updateOrderStatus(id, status) {
   return res.json();
 }
 
+export async function fetchProductById(id) {
+  const res = await resilientFetch(`${API_BASE}/products/${id}`);
+  if (!res.ok) throw new Error('Failed to fetch product details');
+  return res.json();
+}
+
+export async function createOrder(orderData) {
+  const res = await fetch(`${API_BASE}/orders`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(orderData),
+  });
+  if (!res.ok) throw new Error('Failed to place order');
+  return res.json();
+}
