@@ -390,3 +390,18 @@
   color: var(--text-secondary);
   margin-bottom: var(--space-2xl);
 }
+
+.checkout-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+
+@media (max-width: 768px) {
+  .checkout-form-row {
+    grid-template-columns: 1fr;
+  }
+  .checkout-form-card {
+    padding: var(--space-lg);
+  }
+}

@@ -13,7 +13,7 @@ export default function Checkout() {
   const [formData, setFormData] = useState({
     email: '',
     name: '',
-    addressLine1: '',
+    street: '',
     city: '',
     state: '',
     zipCode: '',
@@ -44,11 +44,11 @@ export default function Checkout() {
 
     const orderData = {
       customerEmail: formData.email,
-      products: [{ product: product._id, quantity: 1, priceAtTime: product.price }],
+      products: [{ product: product._id, quantity: 1, priceAtPurchase: product.price }],
       totalAmount: product.price,
       shippingAddress: {
         fullName: formData.name,
-        addressLine1: formData.addressLine1,
+        street: formData.street,
         city: formData.city,
         state: formData.state,
         zipCode: formData.zipCode,
@@ -124,10 +124,10 @@ export default function Checkout() {
             <input type="text" name="name" value={formData.name} onChange={handleInputChange} required />
           </div>
           <div className="form-group full">
-            <label>Address Line 1</label>
-            <input type="text" name="addressLine1" value={formData.addressLine1} onChange={handleInputChange} required />
+            <label>Street Address</label>
+            <input type="text" name="street" value={formData.street} onChange={handleInputChange} required />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)' }}>
+          <div className="checkout-form-row">
             <div className="form-group">
               <label>City</label>
               <input type="text" name="city" value={formData.city} onChange={handleInputChange} required />
@@ -137,7 +137,7 @@ export default function Checkout() {
               <input type="text" name="state" value={formData.state} onChange={handleInputChange} required />
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)' }}>
+          <div className="checkout-form-row">
             <div className="form-group">
               <label>Zip / Postal Code</label>
               <input type="text" name="zipCode" value={formData.zipCode} onChange={handleInputChange} required />
