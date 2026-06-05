@@ -20,7 +20,9 @@ import {
   Star,
   Upload,
   Mail,
-  Download
+  Download,
+  ShoppingCart,
+  Package
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { 
@@ -41,7 +43,13 @@ import {
   fetchUsers,
   deleteUser,
   uploadImage,
-  fetchAiAutofill
+  fetchAiAutofill,
+  fetchProducts,
+  addProduct,
+  updateProduct,
+  deleteProduct,
+  fetchOrders,
+  updateOrderStatus
 } from '../../services/api';
 import './Admin.css';
 
@@ -59,6 +67,8 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isAutoFilling, setIsAutoFilling] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
   
   // Form State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -96,6 +106,19 @@ export default function Admin() {
     cover: '',
     progress: 0,
     thoughts: ''
+  });
+
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [productForm, setProductForm] = useState({
+    title: '',
+    description: '',
+    price: 0,
+    images: '',
+    stock: 0,
+    category: 'Merch',
+    weight: 0,
+    isFeatured: false
   });
 
   const confirmAction = (message, action) => {
@@ -167,6 +190,18 @@ export default function Admin() {
       const data = await fetchUsers();
       setUsers(data || []);
     } catch (err) { console.error('Failed to load users'); }
+
+    // Fetch products
+    try {
+      const data = await fetchProducts();
+      setProducts(data || []);
+    } catch (err) { console.error('Failed to load products'); }
+
+    // Fetch orders
+    try {
+      const data = await fetchOrders();
+      setOrders(data || []);
+    } catch (err) { console.error('Failed to load orders'); }
 
     setLoading(false);
   };
@@ -258,6 +293,71 @@ export default function Admin() {
         toast.error('Failed to delete book');
       }
     });
+  };
+
+  const handleOpenProductModal = (product = null) => {
+    if (product) {
+      setEditingProduct(product);
+      setProductForm({
+        ...product,
+        images: product.images?.join(', ') || ''
+      });
+    } else {
+      setEditingProduct(null);
+      setProductForm({
+        title: '', description: '', price: 0, images: '', stock: 0, category: 'Merch', weight: 0, isFeatured: false
+      });
+    }
+    setIsProductModalOpen(true);
+  };
+
+  const handleSaveProduct = async (e) => {
+    e.preventDefault();
+    setIsSaving(true);
+    try {
+      const payload = {
+        ...productForm,
+        price: parseFloat(productForm.price),
+        stock: parseInt(productForm.stock),
+        weight: parseFloat(productForm.weight),
+        images: typeof productForm.images === 'string' ? productForm.images.split(',').map(m => m.trim()).filter(Boolean) : productForm.images
+      };
+
+      if (editingProduct) {
+        await updateProduct(editingProduct._id || editingProduct.id, payload);
+      } else {
+        await addProduct(payload);
+      }
+      setIsProductModalOpen(false);
+      loadData();
+      toast.success('Product saved successfully');
+    } catch (err) {
+      toast.error('Failed to save product: ' + err.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteProduct = (id) => {
+    confirmAction('Are you sure you want to delete this product?', async () => {
+      try {
+        await deleteProduct(id);
+        loadData();
+        toast.success('Product deleted');
+      } catch (err) {
+        toast.error('Failed to delete product');
+      }
+    });
+  };
+
+  const handleUpdateOrderStatus = async (id, status) => {
+    try {
+      await updateOrderStatus(id, status);
+      loadData();
+      toast.success('Order status updated to ' + status);
+    } catch (err) {
+      toast.error('Failed to update order status');
+    }
   };
 
   const handleOpenListModal = async (list = null) => {
@@ -447,6 +547,18 @@ export default function Admin() {
                 onClick={() => setActiveTab('users')}
               >
                 <Users size={18} /> Registered Users
+              </button>
+              <button 
+                className={`admin-nav-item ${activeTab === 'shop' ? 'active' : ''}`}
+                onClick={() => setActiveTab('shop')}
+              >
+                <ShoppingCart size={18} /> Manage Shop
+              </button>
+              <button 
+                className={`admin-nav-item ${activeTab === 'orders' ? 'active' : ''}`}
+                onClick={() => setActiveTab('orders')}
+              >
+                <Package size={18} /> Orders
               </button>
               <button className="admin-nav-item logout" onClick={() => setIsAuthenticated(false)}>
                 <LogOut size={18} /> Logout
@@ -757,9 +869,173 @@ export default function Admin() {
                 </div>
               </section>
             )}
+
+            {activeTab === 'shop' && (
+              <section className="admin-section animate-fade-in">
+                <div className="admin-header">
+                  <div>
+                    <h2>Manage Shop</h2>
+                    <p>Manage your physical merchandise and products.</p>
+                  </div>
+                  <button className="btn btn-primary" onClick={() => handleOpenProductModal()}>
+                    <Plus size={18} /> Add New Product
+                  </button>
+                </div>
+
+                <div className="admin-books-grid">
+                  {loading ? (
+                    <div className="admin-loading"><Loader className="spin" /> Loading products...</div>
+                  ) : (
+                    products.map(product => (
+                      <div key={product._id} className="admin-book-item glass-card">
+                        <img src={product.images?.[0] || 'https://via.placeholder.com/150'} alt={product.title} />
+                        <div className="admin-book-details">
+                          <h4>{product.title}</h4>
+                          <p>${product.price.toFixed(2)}</p>
+                          <div className="admin-book-meta">
+                            <span className={product.stock > 0 ? 'badge-new' : 'badge-featured'}>
+                              {product.stock > 0 ? `In Stock: ${product.stock}` : 'Out of Stock'}
+                            </span>
+                            {product.isFeatured && <span className="badge-featured">Featured</span>}
+                          </div>
+                        </div>
+                        <div className="admin-book-actions">
+                          <button className="btn-icon" onClick={() => handleOpenProductModal(product)}><Edit3 size={16} /></button>
+                          <button className="btn-icon delete" onClick={() => handleDeleteProduct(product._id)}><Trash2 size={16} /></button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </section>
+            )}
+
+            {activeTab === 'orders' && (
+              <section className="admin-section animate-fade-in">
+                <div className="admin-content-card glass-card animate-fade-in">
+                  <div className="admin-header">
+                    <div>
+                      <h2>Orders</h2>
+                      <p>View and manage incoming store orders.</p>
+                    </div>
+                  </div>
+
+                  <div className="admin-table-wrapper">
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>Order ID</th>
+                          <th>Customer Email</th>
+                          <th>Total Amount</th>
+                          <th>Status</th>
+                          <th style={{ textAlign: 'right' }}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {orders.length === 0 ? (
+                          <tr>
+                            <td colSpan="5" className="text-center" style={{ padding: '3rem', color: 'var(--text-muted)' }}>
+                              No orders yet.
+                            </td>
+                          </tr>
+                        ) : (
+                          orders.map((order) => (
+                            <tr key={order._id}>
+                              <td>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                  <div className="reader-icon"><Package size={14} /></div>
+                                  <span style={{ fontWeight: 600 }}>{order._id.substring(0, 8)}...</span>
+                                </div>
+                              </td>
+                              <td>{order.customerEmail}</td>
+                              <td>${order.totalAmount.toFixed(2)}</td>
+                              <td>
+                                <select 
+                                  value={order.status} 
+                                  onChange={(e) => handleUpdateOrderStatus(order._id, e.target.value)}
+                                  className="admin-status-select"
+                                >
+                                  <option value="Pending">Pending</option>
+                                  <option value="Processing">Processing</option>
+                                  <option value="Shipped">Shipped</option>
+                                  <option value="Delivered">Delivered</option>
+                                  <option value="Cancelled">Cancelled</option>
+                                </select>
+                              </td>
+                              <td style={{ textAlign: 'right' }}>
+                                <button className="btn-icon" onClick={() => alert(JSON.stringify(order.shippingAddress, null, 2))}>
+                                  <Eye size={16} />
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </section>
+            )}
           </main>
         </div>
       </div>
+
+      {/* Product Modal */}
+      {isProductModalOpen && (
+        <div className="admin-modal-overlay animate-fade-in">
+          <div className="admin-modal glass-card animate-scale-in">
+            <div className="admin-modal-header">
+              <h3>{editingProduct ? 'Edit Product' : 'Add New Product'}</h3>
+              <button className="btn-icon" onClick={() => setIsProductModalOpen(false)}><X size={20} /></button>
+            </div>
+            <form onSubmit={handleSaveProduct} className="admin-modal-form">
+              <div className="form-grid">
+                <div className="form-group full">
+                  <label>Title</label>
+                  <input value={productForm.title} onChange={e => setProductForm({...productForm, title: e.target.value})} required />
+                </div>
+                <div className="form-group full">
+                  <label>Image URLs (comma separated)</label>
+                  <input placeholder="https://..." value={productForm.images} onChange={e => setProductForm({...productForm, images: e.target.value})} required />
+                </div>
+                <div className="form-group">
+                  <label>Price ($)</label>
+                  <input type="number" step="0.01" value={productForm.price} onChange={e => setProductForm({...productForm, price: e.target.value})} required />
+                </div>
+                <div className="form-group">
+                  <label>Stock Quantity</label>
+                  <input type="number" value={productForm.stock} onChange={e => setProductForm({...productForm, stock: e.target.value})} required />
+                </div>
+                <div className="form-group">
+                  <label>Category</label>
+                  <input value={productForm.category} onChange={e => setProductForm({...productForm, category: e.target.value})} required />
+                </div>
+                <div className="form-group">
+                  <label>Weight (lbs)</label>
+                  <input type="number" step="0.1" value={productForm.weight} onChange={e => setProductForm({...productForm, weight: e.target.value})} />
+                </div>
+                <div className="form-group full">
+                  <label>Description</label>
+                  <textarea rows="4" value={productForm.description} onChange={e => setProductForm({...productForm, description: e.target.value})} required />
+                </div>
+                <div className="form-group checkbox featured-toggle">
+                  <label>
+                    <input type="checkbox" checked={productForm.isFeatured} onChange={e => setProductForm({...productForm, isFeatured: e.target.checked})} />
+                    <Star size={16} className={productForm.isFeatured ? 'active' : ''} />
+                    <span>Display as <strong>Featured</strong></span>
+                  </label>
+                </div>
+              </div>
+              <div className="admin-modal-footer">
+                <button type="button" className="btn btn-ghost" onClick={() => setIsProductModalOpen(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" disabled={isSaving}>
+                  {isSaving ? 'Saving...' : (editingProduct ? 'Update Product' : 'Add Product')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Book Modal */}
       {isModalOpen && (

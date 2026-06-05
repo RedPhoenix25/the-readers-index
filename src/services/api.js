@@ -357,3 +357,58 @@ export async function uploadAvatar(file, token) {
   if (!res.ok) throw new Error('Failed to upload avatar');
   return res.json();
 }
+
+// ==========================================
+// E-COMMERCE / SHOP API CALLS
+// ==========================================
+
+export async function fetchProducts() {
+  const res = await resilientFetch(`${API_BASE}/products`);
+  if (!res.ok) throw new Error('Failed to fetch products');
+  return res.json();
+}
+
+export async function addProduct(product) {
+  const res = await fetch(`${API_BASE}/products`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(product),
+  });
+  if (!res.ok) throw new Error('Failed to add product');
+  return res.json();
+}
+
+export async function updateProduct(id, product) {
+  const res = await fetch(`${API_BASE}/products/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(product),
+  });
+  if (!res.ok) throw new Error('Failed to update product');
+  return res.json();
+}
+
+export async function deleteProduct(id) {
+  const res = await fetch(`${API_BASE}/products/${id}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error('Failed to delete product');
+  return res.json();
+}
+
+export async function fetchOrders() {
+  const res = await resilientFetch(`${API_BASE}/orders`);
+  if (!res.ok) throw new Error('Failed to fetch orders');
+  return res.json();
+}
+
+export async function updateOrderStatus(id, status) {
+  const res = await fetch(`${API_BASE}/orders/${id}/status`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status }),
+  });
+  if (!res.ok) throw new Error('Failed to update order status');
+  return res.json();
+}
+
