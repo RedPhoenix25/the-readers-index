@@ -292,7 +292,7 @@ export default function Admin() {
       const { url } = await uploadImage(file);
       setProductForm(prev => {
         const currentImages = prev.images.trim();
-        const newImages = currentImages ? `${currentImages}, ${url}` : url;
+        const newImages = currentImages ? `${currentImages}\n${url}` : url;
         return { ...prev, images: newImages };
       });
       toast.success('Product image uploaded');
@@ -320,7 +320,7 @@ export default function Admin() {
       setEditingProduct(product);
       setProductForm({
         ...product,
-        images: product.images?.join(', ') || ''
+        images: product.images?.join('\n') || ''
       });
     } else {
       setEditingProduct(null);
@@ -339,7 +339,7 @@ export default function Admin() {
         ...productForm,
         price: parseFloat(productForm.price),
         stock: parseInt(productForm.stock),
-        images: typeof productForm.images === 'string' ? productForm.images.split(',').map(m => m.trim()).filter(Boolean) : productForm.images
+        images: typeof productForm.images === 'string' ? productForm.images.split('\n').map(m => m.trim()).filter(Boolean) : productForm.images
       };
       delete payload.weight;
 
@@ -1018,9 +1018,9 @@ export default function Admin() {
                   <input value={productForm.title} onChange={e => setProductForm({...productForm, title: e.target.value})} required />
                 </div>
                 <div className="form-group full">
-                  <label>Image URLs (comma separated) or Upload Photo</label>
+                  <label>Image URLs (one per line) or Upload Photo</label>
                   <div className="form-input-with-preview">
-                    <input placeholder="https://..." value={productForm.images} onChange={e => setProductForm({...productForm, images: e.target.value})} required />
+                    <textarea rows="3" placeholder="https://..." value={productForm.images} onChange={e => setProductForm({...productForm, images: e.target.value})} required style={{ resize: 'vertical' }} />
                     <div className="file-upload-wrapper">
                       <input type="file" id="product-image-upload" accept="image/*" onChange={handleProductImageUpload} />
                       <label htmlFor="product-image-upload" className="btn btn-secondary btn-icon-only">
