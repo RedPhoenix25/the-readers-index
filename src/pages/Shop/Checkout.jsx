@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { Check, ArrowLeft, Loader } from 'lucide-react';
 import { createOrder } from '../../services/api';
+import { useCart } from '../../context/CartContext';
 import './Shop.css';
 import toast from 'react-hot-toast';
 
 export default function Checkout() {
-  const location = useLocation();
   const navigate = useNavigate();
-  const product = location.state?.product;
+  const { cartItems, getCartTotal, clearCart } = useCart();
 
   const [formData, setFormData] = useState({
     email: '',
@@ -23,11 +23,11 @@ export default function Checkout() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
 
-  if (!product) {
+  if (!cartItems || cartItems.length === 0) {
     return (
       <div className="shop-page page-transition">
         <div className="shop-empty">
-          <p>No item selected for checkout.</p>
+          <p>Your cart is empty.</p>
           <Link to="/shop" className="btn btn-primary">Return to Shop</Link>
         </div>
       </div>
@@ -44,8 +44,8 @@ export default function Checkout() {
 
     const orderData = {
       customerEmail: formData.email,
-      products: [{ product: product._id, quantity: 1, priceAtPurchase: product.price }],
-      totalAmount: product.price,
+      products: cartItems.map(item => ({ product: item._id, quantity: item.quantity, priceAtPurchase: item.price })),
+      totalAmount: getCartTotal(),
       shippingAddress: {
         fullName: formData.name,
         street: formData.street,
@@ -58,6 +58,7 @@ export default function Checkout() {
 
     try {
       await createOrder(orderData);
+      clearCart();
       setOrderSuccess(true);
       toast.success('Order placed successfully!');
     } catch (err) {
@@ -94,24 +95,32 @@ export default function Checkout() {
   return (
     <div className="checkout-page page-transition">
       <div className="checkout-header animate-fade-in">
-        <Link to={`/shop/${product._id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', marginBottom: 'var(--space-xl)', textDecoration: 'none' }}>
-          <ArrowLeft size={16} /> Back to Product
+        <Link to="/shop" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', marginBottom: 'var(--space-xl)', textDecoration: 'none' }}>
+          <ArrowLeft size={16} /> Back to Shop
         </Link>
         <h1>Mock Checkout</h1>
         <p>This is a simulated checkout. No payment is required.</p>
       </div>
 
       <div className="checkout-form-card glass-card animate-slide-up">
-        <div className="checkout-summary">
-          {product.images?.[0] ? (
-            <img src={product.images[0]} alt={product.title} />
-          ) : (
-            <div style={{ width: '60px', height: '60px', background: 'rgba(0,0,0,0.2)', borderRadius: 'var(--radius-sm)' }} />
-          )}
-          <div className="checkout-summary-details">
-            <h4>{product.title}</h4>
-            <p>{getCurrencySymbol(product.currency)}{product.price.toFixed(2)}</p>
-          </div>
+        <div className="checkout-summary" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+          <h3 style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>Order Summary</h3>
+          {cartItems.map(item => (
+            <div key={item._id} style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+              {item.images?.[0] ? (
+                <img src={item.images[0]} alt={item.title} style={{ width: '50px', height: '50px' }} />
+              ) : (
+                <div style={{ width: '50px', height: '50px', background: 'rgba(0,0,0,0.2)', borderRadius: 'var(--radius-sm)' }} />
+              )}
+              <div className="checkout-summary-details">
+                <h4 style={{ fontSize: '0.9rem' }}>{item.title}</h4>
+                <p style={{ fontSize: '0.85rem' }}>Qty: {item.quantity}</p>
+              </div>
+              <div style={{ marginLeft: 'auto', fontWeight: '500', color: 'var(--accent-gold)' }}>
+                {getCurrencySymbol(item.currency)}{(item.price * item.quantity).toFixed(2)}
+              </div>
+            </div>
+          ))}
         </div>
 
         <form onSubmit={handleSubmit} className="checkout-form">
@@ -151,7 +160,7 @@ export default function Checkout() {
           <div className="checkout-total">
             <span>Total to pay:</span>
             <span style={{ color: 'var(--accent-gold)' }}>
-              {getCurrencySymbol(product.currency)}{product.price.toFixed(2)}
+              {getCurrencySymbol(cartItems[0]?.currency || 'NGN')}{getCartTotal().toFixed(2)}
             </span>
           </div>
 

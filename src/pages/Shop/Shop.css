@@ -62,8 +62,21 @@
 
 .shop-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--space-xl);
+}
+
+@media (max-width: 1024px) {
+  .shop-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .shop-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
+  }
 }
 
 .shop-card {
@@ -133,7 +146,7 @@
 }
 
 .shop-card-content {
-  padding: var(--space-lg);
+  padding: var(--space-md);
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -148,10 +161,11 @@
 }
 
 .shop-card h3 {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   color: var(--text-primary);
-  margin-bottom: var(--space-md);
-  font-family: var(--font-serif);
+  margin-bottom: var(--space-sm);
+  font-family: var(--font-sans);
+  font-weight: 500;
   line-height: 1.3;
 }
 
@@ -163,9 +177,9 @@
 }
 
 .shop-card-price {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--accent-gold);
 }
 
 .shop-loading, .shop-empty {
@@ -437,5 +451,52 @@
   }
   .checkout-page {
     padding: calc(var(--space-2xl) + 60px) var(--space-md) var(--space-2xl);
+  }
+}
+
+.floating-cart-btn {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-gold);
+  z-index: 900;
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.floating-cart-btn:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(201, 168, 76, 0.3);
+}
+
+.cart-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: var(--accent-rose);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: bold;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+@media (max-width: 768px) {
+  .floating-cart-btn {
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 50px;
+    height: 50px;
   }
 }

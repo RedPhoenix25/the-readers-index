@@ -17,6 +17,7 @@ import ResetPassword from './pages/ResetPassword/ResetPassword';
 import Shop from './pages/Shop/Shop';
 import ProductDetails from './pages/Shop/ProductDetails';
 import Checkout from './pages/Shop/Checkout';
+import CartDrawer from './components/CartDrawer/CartDrawer';
 import { Toaster } from 'react-hot-toast';
 
 function ScrollToTop() {
@@ -145,6 +146,7 @@ export default function App() {
           <Route path="/shop/checkout" element={<Checkout />} />
         </Routes>
       </main>
+      <CartDrawer />
       {!shouldHideFooter && <Footer />}
     </ErrorBoundary>
   );

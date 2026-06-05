@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Loader, Search } from 'lucide-react';
+import { ShoppingBag, Loader, Search, ShoppingCart } from 'lucide-react';
 import { fetchProducts } from '../../services/api';
+import { useCart } from '../../context/CartContext';
 import './Shop.css';
 
 export default function Shop() {
+  const { getCartCount, setIsCartOpen } = useCart();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -104,6 +106,11 @@ export default function Shop() {
           </div>
         )}
       </section>
+
+      <button className="floating-cart-btn glass-card" onClick={() => setIsCartOpen(true)}>
+        <ShoppingCart size={24} />
+        {getCartCount() > 0 && <span className="cart-badge">{getCartCount()}</span>}
+      </button>
     </div>
   );
 }

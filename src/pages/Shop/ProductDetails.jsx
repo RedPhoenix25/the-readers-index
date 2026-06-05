@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, ArrowLeft, Loader, Check } from 'lucide-react';
 import { fetchProductById } from '../../services/api';
+import { useCart } from '../../context/CartContext';
 import './Shop.css';
 
 export default function ProductDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { addToCart, getCartCount, setIsCartOpen } = useCart();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -26,9 +28,8 @@ export default function ProductDetails() {
     }
   };
 
-  const handleCheckout = () => {
-    // Pass product info to checkout route via state
-    navigate('/shop/checkout', { state: { product } });
+  const handleAddToCart = () => {
+    addToCart(product);
   };
 
   const getCurrencySymbol = (currency) => {
@@ -96,11 +97,11 @@ export default function ProductDetails() {
           <div className="product-actions">
             <button 
               className="btn btn-primary" 
-              onClick={handleCheckout}
+              onClick={handleAddToCart}
               disabled={product.stock <= 0}
             >
               <ShoppingCart size={18} />
-              {product.stock > 0 ? 'Buy Now' : 'Out of Stock'}
+              {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
             </button>
           </div>
 
@@ -113,6 +114,11 @@ export default function ProductDetails() {
           </div>
         </div>
       </div>
+
+      <button className="floating-cart-btn glass-card" onClick={() => setIsCartOpen(true)}>
+        <ShoppingCart size={24} />
+        {getCartCount() > 0 && <span className="cart-badge">{getCartCount()}</span>}
+      </button>
     </div>
   );
 }
