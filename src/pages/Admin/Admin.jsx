@@ -117,7 +117,7 @@ export default function Admin() {
     images: '',
     stock: 0,
     category: 'Merch',
-    weight: 0,
+    currency: 'NGN',
     isFeatured: false
   });
 
@@ -283,6 +283,26 @@ export default function Admin() {
     }
   };
 
+  const handleProductImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsSaving(true);
+    try {
+      const { url } = await uploadImage(file);
+      setProductForm(prev => {
+        const currentImages = prev.images.trim();
+        const newImages = currentImages ? `${currentImages}, ${url}` : url;
+        return { ...prev, images: newImages };
+      });
+      toast.success('Product image uploaded');
+    } catch (err) {
+      toast.error('Failed to upload product image');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleDeleteBook = (id) => {
     confirmAction('Are you sure you want to delete this book?', async () => {
       try {
@@ -305,7 +325,7 @@ export default function Admin() {
     } else {
       setEditingProduct(null);
       setProductForm({
-        title: '', description: '', price: 0, images: '', stock: 0, category: 'Merch', weight: 0, isFeatured: false
+        title: '', description: '', price: 0, images: '', stock: 0, category: 'Merch', currency: 'NGN', isFeatured: false
       });
     }
     setIsProductModalOpen(true);
@@ -319,9 +339,9 @@ export default function Admin() {
         ...productForm,
         price: parseFloat(productForm.price),
         stock: parseInt(productForm.stock),
-        weight: parseFloat(productForm.weight),
         images: typeof productForm.images === 'string' ? productForm.images.split(',').map(m => m.trim()).filter(Boolean) : productForm.images
       };
+      delete payload.weight;
 
       if (editingProduct) {
         await updateProduct(editingProduct._id || editingProduct.id, payload);
@@ -891,7 +911,10 @@ export default function Admin() {
                         <img src={product.images?.[0] || 'https://via.placeholder.com/150'} alt={product.title} />
                         <div className="admin-book-details">
                           <h4>{product.title}</h4>
-                          <p>${product.price.toFixed(2)}</p>
+                          <p>
+                            {product.currency === 'NGN' ? '₦' : product.currency === 'GBP' ? '£' : '$'}
+                            {product.price.toFixed(2)}
+                          </p>
                           <div className="admin-book-meta">
                             <span className={product.stock > 0 ? 'badge-new' : 'badge-featured'}>
                               {product.stock > 0 ? `In Stock: ${product.stock}` : 'Out of Stock'}
@@ -995,12 +1018,30 @@ export default function Admin() {
                   <input value={productForm.title} onChange={e => setProductForm({...productForm, title: e.target.value})} required />
                 </div>
                 <div className="form-group full">
-                  <label>Image URLs (comma separated)</label>
-                  <input placeholder="https://..." value={productForm.images} onChange={e => setProductForm({...productForm, images: e.target.value})} required />
+                  <label>Image URLs (comma separated) or Upload Photo</label>
+                  <div className="form-input-with-preview">
+                    <input placeholder="https://..." value={productForm.images} onChange={e => setProductForm({...productForm, images: e.target.value})} required />
+                    <div className="file-upload-wrapper">
+                      <input type="file" id="product-image-upload" accept="image/*" onChange={handleProductImageUpload} />
+                      <label htmlFor="product-image-upload" className="btn btn-secondary btn-icon-only">
+                        <Upload size={16} />
+                      </label>
+                    </div>
+                  </div>
                 </div>
-                <div className="form-group">
-                  <label>Price ($)</label>
-                  <input type="number" step="0.01" value={productForm.price} onChange={e => setProductForm({...productForm, price: e.target.value})} required />
+                <div className="form-group" style={{ display: 'flex', gap: '0.5rem', gridColumn: 'span 2' }}>
+                  <div style={{ flex: 1 }}>
+                    <label>Price</label>
+                    <input type="number" step="0.01" value={productForm.price} onChange={e => setProductForm({...productForm, price: e.target.value})} required />
+                  </div>
+                  <div>
+                    <label>Currency</label>
+                    <select value={productForm.currency} onChange={e => setProductForm({...productForm, currency: e.target.value})} style={{ width: '90px' }} required>
+                      <option value="NGN">₦ NGN</option>
+                      <option value="USD">$ USD</option>
+                      <option value="GBP">£ GBP</option>
+                    </select>
+                  </div>
                 </div>
                 <div className="form-group">
                   <label>Stock Quantity</label>
@@ -1010,10 +1051,7 @@ export default function Admin() {
                   <label>Category</label>
                   <input value={productForm.category} onChange={e => setProductForm({...productForm, category: e.target.value})} required />
                 </div>
-                <div className="form-group">
-                  <label>Weight (lbs)</label>
-                  <input type="number" step="0.1" value={productForm.weight} onChange={e => setProductForm({...productForm, weight: e.target.value})} />
-                </div>
+
                 <div className="form-group full">
                   <label>Description</label>
                   <textarea rows="4" value={productForm.description} onChange={e => setProductForm({...productForm, description: e.target.value})} required />
