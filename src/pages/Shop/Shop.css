@@ -353,6 +353,37 @@
   gap: var(--space-lg);
 }
 
+.checkout-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.checkout-form .form-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.checkout-form .form-group input, 
+.checkout-form .form-group textarea, 
+.checkout-form .form-group select {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.checkout-form .form-group input:focus, 
+.checkout-form .form-group textarea:focus,
+.checkout-form .form-group select:focus {
+  border-color: var(--accent-gold);
+  outline: none;
+}
+
 .checkout-total {
   display: flex;
   justify-content: space-between;
@@ -403,5 +434,8 @@
   }
   .checkout-form-card {
     padding: var(--space-lg);
+  }
+  .checkout-page {
+    padding: calc(var(--space-2xl) + 60px) var(--space-md) var(--space-2xl);
   }
 }
