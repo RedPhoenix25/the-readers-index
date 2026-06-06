@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Loader, Search, ShoppingCart } from 'lucide-react';
+import { ShoppingBag, Loader, Search, ShoppingCart, Plus } from 'lucide-react';
 import { fetchProducts } from '../../services/api';
 import { useCart } from '../../context/CartContext';
 import './Shop.css';
 
 export default function Shop() {
-  const { getCartCount, setIsCartOpen } = useCart();
+  const { getCartCount, setIsCartOpen, addToCart } = useCart();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -98,6 +98,17 @@ export default function Shop() {
                       <span className="shop-card-price">
                         {getCurrencySymbol(product.currency)}{product.price.toFixed(2)}
                       </span>
+                      <button 
+                        className="btn-quick-add"
+                        disabled={product.stock <= 0}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          addToCart(product);
+                        }}
+                        title={product.stock > 0 ? "Add to Cart" : "Out of Stock"}
+                      >
+                        <Plus size={18} />
+                      </button>
                     </div>
                   </div>
                 </Link>

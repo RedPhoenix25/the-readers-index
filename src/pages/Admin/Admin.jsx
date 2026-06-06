@@ -22,7 +22,8 @@ import {
   Mail,
   Download,
   ShoppingCart,
-  Package
+  Package,
+  TrendingUp
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { 
@@ -51,12 +52,13 @@ import {
   fetchOrders,
   updateOrderStatus
 } from '../../services/api';
+import AnalyticsDashboard from './AnalyticsDashboard';
 import './Admin.css';
 
 export default function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
-  const [activeTab, setActiveTab] = useState('books'); // 'books' | 'reading' | 'subscribers'
+  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'books' | 'reading' | 'subscribers' | ...
   
   // Data State
   const [books, setBooks] = useState([]);
@@ -539,6 +541,13 @@ export default function Admin() {
             
             <nav className="admin-nav">
               <button 
+                className={`admin-nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
+                onClick={() => setActiveTab('dashboard')}
+              >
+                <TrendingUp size={20} />
+                Sales Dashboard
+              </button>
+              <button 
                 className={`admin-nav-item ${activeTab === 'books' ? 'active' : ''}`}
                 onClick={() => setActiveTab('books')}
               >
@@ -588,6 +597,13 @@ export default function Admin() {
 
           {/* Main Content */}
           <main className="admin-main">
+            {/* Dashboard Tab */}
+            {activeTab === 'dashboard' && (
+              <div className="admin-panel animate-fade-in">
+                <AnalyticsDashboard orders={orders} />
+              </div>
+            )}
+
             {activeTab === 'books' && (
               <section className="admin-section animate-fade-in">
                 <div className="admin-header">

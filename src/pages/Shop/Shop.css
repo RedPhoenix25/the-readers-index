@@ -182,6 +182,31 @@
   color: var(--accent-gold);
 }
 
+.btn-quick-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent-gold-dim);
+  color: var(--accent-gold);
+  border: 1px solid rgba(201, 168, 76, 0.2);
+  transition: all var(--transition-fast);
+}
+
+.btn-quick-add:hover:not(:disabled) {
+  background: var(--accent-gold);
+  color: var(--bg-primary);
+  transform: scale(1.1);
+}
+
+.btn-quick-add:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
 .shop-loading, .shop-empty {
   display: flex;
   flex-direction: column;
