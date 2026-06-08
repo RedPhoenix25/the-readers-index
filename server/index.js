@@ -766,8 +766,8 @@ app.delete('/api/products/:id', async (req, res) => {
 // --- ORDERS (MOCK CHECKOUT) ---
 app.delete('/api/orders/delivered', async (req, res) => {
   try {
-    const result = await Order.deleteMany({ status: 'Delivered' });
-    res.json({ message: `Deleted ${result.deletedCount} delivered orders`, count: result.deletedCount });
+    const result = await Order.deleteMany({ status: { $in: ['Delivered', 'Cancelled'] } });
+    res.json({ message: `Deleted ${result.deletedCount} completed orders`, count: result.deletedCount });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -149,24 +149,28 @@ export default function Admin() {
   useEffect(() => {
     let interval;
     if (isAuthenticated) {
-      interval = setInterval(() => {
-        // Fetch data silently in the background without triggering full loading states
-        // Fetch books
-        fetchBooks({ limit: 100 }).then(data => setBooks(data?.books || [])).catch(() => {});
-        // Fetch lists
-        fetchLists().then(data => setCuratedLists(data || [])).catch(() => {});
-        // Fetch subscribers
-        fetchSubscribers().then(data => setSubscribers(data || [])).catch(() => {});
-        // Fetch users
-        fetchUsers().then(data => setUsers(data || [])).catch(() => {});
-        // Fetch products
-        fetchProducts().then(data => setProducts(data || [])).catch(() => {});
-        // Fetch orders
-        fetchOrders().then(data => setOrders(data || [])).catch(() => {});
+      interval = setInterval(async () => {
+        // Fetch data sequentially to avoid overwhelming the database
+        try {
+          if (activeTab === 'orders' || activeTab === 'dashboard') {
+            const data = await fetchOrders().catch(() => null);
+            if (data) setOrders(data || []);
+          }
+          if (activeTab === 'shop' || activeTab === 'dashboard') {
+            const data = await fetchProducts().catch(() => null);
+            if (data) setProducts(data || []);
+          }
+          if (activeTab === 'subscribers') {
+            const data = await fetchSubscribers().catch(() => null);
+            if (data) setSubscribers(data || []);
+          }
+        } catch (err) {
+          // Ignore background fetch errors
+        }
       }, 10000);
     }
     return () => clearInterval(interval);
-  }, [isAuthenticated]);
+  }, [isAuthenticated, activeTab]);
 
   // Simple mock authentication
   const handleLogin = (e) => {
@@ -184,26 +188,36 @@ export default function Admin() {
     setLoading(true);
     
     try {
-      await Promise.allSettled([
-        fetchBooks({ limit: 100 }).then(data => setBooks(data?.books || [])).catch(() => console.error('Failed to load books')),
-        fetchLists().then(data => setCuratedLists(data || [])).catch(() => console.error('Failed to load lists')),
-        fetchCurrentlyReading().then(data => {
-          setReadingStatus(data);
-          if (data) {
-            setReadingForm({
-              title: data.title || '',
-              author: data.author || '',
-              cover: data.cover || '',
-              progress: data.progress || 0,
-              thoughts: data.thoughts || ''
-            });
-          }
-        }).catch(() => console.error('Failed to load reading status')),
-        fetchSubscribers().then(data => setSubscribers(data || [])).catch(() => console.error('Failed to load subscribers')),
-        fetchUsers().then(data => setUsers(data || [])).catch(() => console.error('Failed to load users')),
-        fetchProducts().then(data => setProducts(data || [])).catch(() => console.error('Failed to load products')),
-        fetchOrders().then(data => setOrders(data || [])).catch(() => console.error('Failed to load orders'))
-      ]);
+      // Fetch sequentially to prevent overwhelming the DB connection pool
+      const b = await fetchBooks({ limit: 100 }).catch(() => null);
+      if (b) setBooks(b.books || []);
+      
+      const p = await fetchProducts().catch(() => null);
+      if (p) setProducts(p || []);
+      
+      const o = await fetchOrders().catch(() => null);
+      if (o) setOrders(o || []);
+      
+      const l = await fetchLists().catch(() => null);
+      if (l) setCuratedLists(l || []);
+      
+      const r = await fetchCurrentlyReading().catch(() => null);
+      if (r) {
+        setReadingStatus(r);
+        setReadingForm({
+          title: r.title || '',
+          author: r.author || '',
+          cover: r.cover || '',
+          progress: r.progress || 0,
+          thoughts: r.thoughts || ''
+        });
+      }
+      
+      const s = await fetchSubscribers().catch(() => null);
+      if (s) setSubscribers(s || []);
+      
+      const u = await fetchUsers().catch(() => null);
+      if (u) setUsers(u || []);
     } catch (err) {
       console.error('Critical error in loadData', err);
     }
@@ -408,13 +422,13 @@ export default function Admin() {
   };
 
   const handleDeleteDeliveredOrders = () => {
-    confirmAction('Are you sure you want to delete all Delivered orders? This cannot be undone.', async () => {
+    confirmAction('Are you sure you want to delete all Delivered and Cancelled orders? This cannot be undone.', async () => {
       try {
         const data = await deleteDeliveredOrders();
-        toast.success(`Deleted ${data.count || 0} delivered orders`);
+        toast.success(`Deleted ${data.count || 0} completed/cancelled orders`);
         loadData();
       } catch (err) {
-        toast.error('Failed to clean up delivered orders');
+        toast.error('Failed to clean up orders');
       }
     });
   };
