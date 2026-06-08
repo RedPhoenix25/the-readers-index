@@ -369,7 +369,6 @@ export default function Admin() {
     try {
       await updateOrder(id, { status });
       setOrders(prev => prev.map(o => o._id === id ? { ...o, status } : o));
-      loadData();
       toast.success('Order status updated to ' + status);
     } catch (err) {
       toast.error('Failed to update order status');
@@ -418,7 +417,8 @@ export default function Admin() {
       await updateOrder(selectedOrder._id, orderTrackingForm);
       // Update local selectedOrder to reflect changes in the modal immediately
       setSelectedOrder(prev => ({ ...prev, trackingNumber: orderTrackingForm.trackingNumber, trackingUrl: orderTrackingForm.trackingUrl }));
-      loadData();
+      // Optimistically update the main orders list as well
+      setOrders(prev => prev.map(o => o._id === selectedOrder._id ? { ...o, trackingNumber: orderTrackingForm.trackingNumber, trackingUrl: orderTrackingForm.trackingUrl } : o));
       toast.success('Tracking info updated');
     } catch (err) {
       toast.error('Failed to update tracking info');
