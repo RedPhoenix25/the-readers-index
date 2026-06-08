@@ -106,6 +106,15 @@ export default function Bookshelf() {
     setSortBy('highest');
   };
 
+  const handleGenreClick = (genre) => {
+    setActiveGenre(genre);
+    const resultsSection = document.getElementById('bookshelf-controls');
+    if (resultsSection) {
+      const topPos = resultsSection.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top: topPos, behavior: 'smooth' });
+    }
+  };
+
   const hasActiveFilters = searchQuery || activeGenre !== 'All' || activeMood !== 'All';
 
   const sortLabels = {
@@ -126,6 +135,31 @@ export default function Bookshelf() {
           <p className="section-subtitle">
             Every book we've read, reviewed, and loved — searchable by genre, mood, and more.
           </p>
+        </div>
+      </section>
+
+      {/* Genre Explorer */}
+      <section className="genre-explorer">
+        <div className="container">
+          <div className="genre-explorer-header">
+            <h2><LibraryBig size={28} /> Browse by Genre</h2>
+          </div>
+          <div className="genre-folder-grid">
+            {genres.map(genre => (
+              <div 
+                key={genre} 
+                className={`genre-folder ${activeGenre === genre ? 'active' : ''}`}
+                onClick={() => handleGenreClick(genre)}
+              >
+                <div className="genre-folder-icon">
+                  <div className="genre-folder-tab"></div>
+                  <div className="genre-folder-body">
+                    <span className="genre-folder-label">{genre === 'All' ? 'All Archives' : genre}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

@@ -492,3 +492,183 @@
     padding: 0 var(--space-sm);
   }
 }
+
+/* ===== GENRE EXPLORER ===== */
+.genre-explorer {
+  padding: var(--space-2xl) 0;
+  border-bottom: 1px solid var(--border-subtle);
+  background: radial-gradient(ellipse at bottom right, rgba(201, 168, 76, 0.03), transparent 50%);
+}
+
+.genre-explorer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-xl);
+}
+
+.genre-explorer-header h2 {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.genre-folder-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-xl);
+  padding: var(--space-md) 0;
+}
+
+.genre-folder {
+  position: relative;
+  cursor: pointer;
+  transition: transform var(--transition-normal);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.genre-folder:hover {
+  transform: translateY(-8px);
+}
+
+.genre-folder-icon {
+  width: 100px;
+  height: 80px;
+  position: relative;
+  margin-bottom: var(--space-md);
+  filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.5));
+}
+
+.genre-folder-tab {
+  position: absolute;
+  top: 0;
+  left: 5px;
+  width: 40px;
+  height: 15px;
+  background: var(--bg-tertiary);
+  border-radius: 8px 8px 0 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: none;
+  z-index: 1;
+  transition: background var(--transition-fast);
+}
+
+.genre-folder-body {
+  position: absolute;
+  top: 14px;
+  left: 0;
+  width: 100%;
+  height: 66px;
+  background: rgba(20, 20, 20, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  z-index: 2;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Back folder inner sheet effect */
+.genre-folder-body::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 4px;
+  right: 4px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 4px 4px 0 0;
+  z-index: -1;
+  transition: transform var(--transition-fast);
+}
+
+.genre-folder:hover .genre-folder-body {
+  background: rgba(201, 168, 76, 0.15);
+  border-color: rgba(201, 168, 76, 0.4);
+  box-shadow: 0 0 20px rgba(201, 168, 76, 0.2), inset 0 1px 0 rgba(201, 168, 76, 0.3);
+}
+
+.genre-folder:hover .genre-folder-tab {
+  background: rgba(201, 168, 76, 0.1);
+  border-color: rgba(201, 168, 76, 0.3);
+}
+
+.genre-folder:hover .genre-folder-body::before {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.genre-folder-icon svg {
+  color: var(--accent-gold);
+  opacity: 0.7;
+  transition: opacity var(--transition-fast);
+}
+
+.genre-folder:hover .genre-folder-icon svg {
+  opacity: 1;
+}
+
+.genre-folder-label {
+  font-family: var(--font-sans);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: center;
+  transition: color var(--transition-fast);
+}
+
+.genre-folder:hover .genre-folder-label {
+  color: var(--text-primary);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.genre-folder.active .genre-folder-body {
+  background: rgba(201, 168, 76, 0.25);
+  border-color: var(--accent-gold);
+}
+
+.genre-folder.active .genre-folder-label {
+  color: var(--accent-gold);
+}
+
+@media (max-width: 768px) {
+  .genre-folder-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: var(--space-lg);
+  }
+  .genre-explorer-header h2 {
+    font-size: 1.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .genre-folder-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
+  }
+  .genre-folder-icon {
+    width: 80px;
+    height: 64px;
+  }
+  .genre-folder-body {
+    height: 52px;
+    top: 12px;
+  }
+  .genre-folder-tab {
+    width: 32px;
+    height: 12px;
+  }
+  .genre-folder-label {
+    font-size: 0.95rem;
+  }
+}
