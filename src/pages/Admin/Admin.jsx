@@ -52,8 +52,8 @@ import {
   fetchOrders,
   updateOrderStatus
 } from '../../services/api';
-import AnalyticsDashboard from './AnalyticsDashboard';
 import './Admin.css';
+import AnalyticsDashboard from './AnalyticsDashboard';
 
 export default function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
