@@ -58,8 +58,13 @@ export default function Checkout() {
 
     try {
       const newOrder = await createOrder(orderData);
+      setOrderSuccess({
+        id: newOrder._id,
+        items: [...cart],
+        total: cartTotal,
+        shipping: formData
+      });
       clearCart();
-      setOrderSuccess(newOrder._id);
       toast.success('Order placed successfully!');
     } catch (err) {
       toast.error('Failed to place order. Please try again.');
@@ -77,10 +82,16 @@ export default function Checkout() {
     }
   };
 
+  useEffect(() => {
+    if (orderSuccess) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [orderSuccess]);
+
   if (orderSuccess) {
     return (
       <div className="checkout-page page-transition">
-        <div className="checkout-success glass-card animate-scale-in" style={{ padding: 'var(--space-3xl)', textAlign: 'center', maxWidth: '500px', margin: '4rem auto' }}>
+        <div className="checkout-success glass-card animate-scale-in" style={{ padding: 'var(--space-3xl)', textAlign: 'center', maxWidth: '600px', margin: '4rem auto' }}>
           <div className="checkout-success-icon" style={{ display: 'inline-flex', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', padding: '1.5rem', borderRadius: '50%', marginBottom: '1.5rem' }}>
             <Check size={40} />
           </div>
@@ -91,16 +102,34 @@ export default function Checkout() {
           <div style={{ background: 'var(--bg-primary)', padding: '1.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', marginBottom: '2rem' }}>
             <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Your Order ID</p>
             <p style={{ fontSize: '1.5rem', fontWeight: 'bold', fontFamily: 'monospace', color: 'var(--accent-gold)', letterSpacing: '2px' }}>
-              {orderSuccess.substring(0, 8)}
+              {orderSuccess.id.substring(0, 8)}
             </p>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '1rem' }}>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '1rem', marginBottom: '1.5rem' }}>
               Please save this Order ID. You can use it to track your order status from the Track Order page.
             </p>
+            
+            <div style={{ textAlign: 'left', borderTop: '1px solid var(--border-subtle)', paddingTop: '1.5rem' }}>
+              <h4 style={{ marginBottom: '1rem', color: 'var(--text-primary)' }}>Order Summary</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                {orderSuccess.items.map((item, idx) => (
+                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
+                    <span>{item.quantity}x {item.title}</span>
+                    <span style={{ fontWeight: 500 }}>{getCurrencySymbol(item.currency)}{(item.price * item.quantity).toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border-subtle)', paddingTop: '1rem', fontWeight: 'bold', fontSize: '1.1rem' }}>
+                <span>Total Amount</span>
+                <span style={{ color: 'var(--accent-gold)' }}>₦{orderSuccess.total.toFixed(2)}</span>
+              </div>
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-            <Link to="/track-order" className="btn btn-outline">Track Order</Link>
-            <Link to="/shop" className="btn btn-primary">Continue Shopping</Link>
-          </div>
+          <Link to="/track-order" className="btn btn-primary" style={{ width: '100%', marginBottom: '1rem' }}>
+            Track Your Order
+          </Link>
+          <Link to="/shop" className="btn btn-secondary" style={{ width: '100%' }}>
+            Continue Shopping
+          </Link>
         </div>
       </div>
     );
