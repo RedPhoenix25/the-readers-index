@@ -50,7 +50,7 @@ import {
   updateProduct,
   deleteProduct,
   fetchOrders,
-  updateOrderStatus
+  updateOrder
 } from '../../services/api';
 import './Admin.css';
 import AnalyticsDashboard from './AnalyticsDashboard';
@@ -122,6 +122,11 @@ export default function Admin() {
     currency: 'NGN',
     isFeatured: false
   });
+
+  // Order Details Modal State
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [orderTrackingForm, setOrderTrackingForm] = useState({ trackingNumber: '', trackingUrl: '' });
 
   const confirmAction = (message, action) => {
     toast((t) => (
@@ -397,12 +402,38 @@ export default function Admin() {
 
   const handleUpdateOrderStatus = async (id, status) => {
     try {
-      await updateOrderStatus(id, status);
+      await updateOrder(id, { status });
       loadData();
       toast.success('Order status updated to ' + status);
     } catch (err) {
       toast.error('Failed to update order status');
     }
+  };
+
+  const handleUpdateOrderTracking = async (e) => {
+    e.preventDefault();
+    if (!selectedOrder) return;
+    setIsSaving(true);
+    try {
+      await updateOrder(selectedOrder._id, orderTrackingForm);
+      // Update local selectedOrder to reflect changes in the modal immediately
+      setSelectedOrder(prev => ({ ...prev, trackingNumber: orderTrackingForm.trackingNumber, trackingUrl: orderTrackingForm.trackingUrl }));
+      loadData();
+      toast.success('Tracking info updated');
+    } catch (err) {
+      toast.error('Failed to update tracking info');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleOpenOrderModal = (order) => {
+    setSelectedOrder(order);
+    setOrderTrackingForm({
+      trackingNumber: order.trackingNumber || '',
+      trackingUrl: order.trackingUrl || ''
+    });
+    setIsOrderModalOpen(true);
   };
 
   const handleOpenListModal = async (list = null) => {
@@ -987,7 +1018,8 @@ export default function Admin() {
                       <thead>
                         <tr>
                           <th>Order ID</th>
-                          <th>Customer Email</th>
+                          <th>Date</th>
+                          <th>Customer</th>
                           <th>Total Amount</th>
                           <th>Status</th>
                           <th style={{ textAlign: 'right' }}>Actions</th>
@@ -996,7 +1028,7 @@ export default function Admin() {
                       <tbody>
                         {orders.length === 0 ? (
                           <tr>
-                            <td colSpan="5" className="text-center" style={{ padding: '3rem', color: 'var(--text-muted)' }}>
+                            <td colSpan="6" className="text-center" style={{ padding: '3rem', color: 'var(--text-muted)' }}>
                               No orders yet.
                             </td>
                           </tr>
@@ -1006,26 +1038,24 @@ export default function Admin() {
                               <td>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                   <div className="reader-icon"><Package size={14} /></div>
-                                  <span style={{ fontWeight: 600 }}>{order._id.substring(0, 8)}...</span>
+                                  <span style={{ fontWeight: 600, fontFamily: 'monospace' }}>#{order._id.substring(0, 8)}</span>
                                 </div>
                               </td>
-                              <td>{order.customerEmail}</td>
-                              <td>${order.totalAmount.toFixed(2)}</td>
+                              <td style={{ color: 'var(--text-muted)' }}>{new Date(order.createdAt).toLocaleDateString()}</td>
                               <td>
-                                <select 
-                                  value={order.status} 
-                                  onChange={(e) => handleUpdateOrderStatus(order._id, e.target.value)}
-                                  className="admin-status-select"
-                                >
-                                  <option value="Pending">Pending</option>
-                                  <option value="Processing">Processing</option>
-                                  <option value="Shipped">Shipped</option>
-                                  <option value="Delivered">Delivered</option>
-                                  <option value="Cancelled">Cancelled</option>
-                                </select>
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                  <span style={{ fontWeight: 500 }}>{order.shippingAddress?.fullName}</span>
+                                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{order.customerEmail}</span>
+                                </div>
                               </td>
-                              <td style={{ textAlign: 'right' }}>
-                                <button className="btn-icon" onClick={() => alert(JSON.stringify(order.shippingAddress, null, 2))}>
+                              <td style={{ fontWeight: 600 }}>₦{order.totalAmount.toFixed(2)}</td>
+                              <td>
+                                <span className={`badge status-badge status-${order.status.toLowerCase()}`}>
+                                  {order.status}
+                                </span>
+                              </td>
+                              <td style={{ textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                                <button className="btn-icon" title="View Details" onClick={() => handleOpenOrderModal(order)}>
                                   <Eye size={16} />
                                 </button>
                               </td>
@@ -1301,6 +1331,108 @@ export default function Admin() {
           </div>
         </div>
       )}
+      {/* Order Details Modal */}
+      {isOrderModalOpen && selectedOrder && (
+        <div className="admin-modal-overlay animate-fade-in">
+          <div className="admin-modal glass-card animate-scale-in" style={{ maxWidth: '650px' }}>
+            <div className="admin-modal-header">
+              <div>
+                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  Order Details <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>#{selectedOrder._id.substring(0,8)}</span>
+                </h3>
+              </div>
+              <button className="btn-icon" onClick={() => setIsOrderModalOpen(false)}><X size={20} /></button>
+            </div>
+            <div className="admin-modal-content" style={{ padding: '1.5rem', maxHeight: '70vh', overflowY: 'auto' }}>
+              <div className="order-details-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
+                <div className="order-details-section">
+                  <h4 style={{ color: 'var(--accent-gold)', marginBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>Customer Details</h4>
+                  <p style={{ marginBottom: '0.2rem' }}><strong>Name:</strong> {selectedOrder.shippingAddress?.fullName}</p>
+                  <p style={{ marginBottom: '0.2rem' }}><strong>Email:</strong> {selectedOrder.customerEmail}</p>
+                  <p style={{ marginBottom: '0.2rem' }}><strong>Date:</strong> {new Date(selectedOrder.createdAt).toLocaleString()}</p>
+                  <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center' }}>
+                    <strong style={{ marginRight: '0.5rem' }}>Status:</strong>
+                    <select 
+                      value={selectedOrder.status} 
+                      onChange={(e) => {
+                        handleUpdateOrderStatus(selectedOrder._id, e.target.value);
+                        setSelectedOrder({...selectedOrder, status: e.target.value});
+                      }}
+                      className="admin-status-select"
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="Processing">Processing</option>
+                      <option value="Shipped">Shipped</option>
+                      <option value="Delivered">Delivered</option>
+                      <option value="Cancelled">Cancelled</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="order-details-section">
+                  <h4 style={{ color: 'var(--accent-gold)', marginBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>Shipping Address</h4>
+                  <p style={{ margin: 0 }}>{selectedOrder.shippingAddress?.fullName}</p>
+                  <p style={{ margin: 0 }}>{selectedOrder.shippingAddress?.street}</p>
+                  <p style={{ margin: 0 }}>{selectedOrder.shippingAddress?.city}, {selectedOrder.shippingAddress?.state} {selectedOrder.shippingAddress?.zipCode}</p>
+                  <p style={{ margin: 0 }}>{selectedOrder.shippingAddress?.country}</p>
+                </div>
+              </div>
+
+              <div className="order-details-section" style={{ marginBottom: '2rem', background: 'var(--bg-glass-subtle)', padding: '1.5rem', borderRadius: '12px' }}>
+                <h4 style={{ color: 'var(--accent-gold)', marginBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>Tracking Information</h4>
+                <form onSubmit={handleUpdateOrderTracking} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'end' }}>
+                  <div className="form-group">
+                    <label style={{ fontSize: '0.85rem' }}>Tracking Number</label>
+                    <input 
+                      value={orderTrackingForm.trackingNumber} 
+                      onChange={e => setOrderTrackingForm({...orderTrackingForm, trackingNumber: e.target.value})} 
+                      placeholder="e.g. 1Z999999..."
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label style={{ fontSize: '0.85rem' }}>Tracking URL</label>
+                    <input 
+                      value={orderTrackingForm.trackingUrl} 
+                      onChange={e => setOrderTrackingForm({...orderTrackingForm, trackingUrl: e.target.value})} 
+                      placeholder="e.g. https://fedex.com/track?..."
+                    />
+                  </div>
+                  <div style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'flex-end' }}>
+                    <button type="submit" className="btn btn-sm btn-secondary" disabled={isSaving}>
+                      {isSaving ? 'Saving...' : 'Save Tracking Info'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              <div className="order-details-section">
+                <h4 style={{ color: 'var(--accent-gold)', marginBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>Order Items</h4>
+                <div className="order-items-list" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {selectedOrder.products?.map((item, index) => (
+                    <div key={index} style={{ display: 'flex', gap: '1rem', alignItems: 'center', background: 'var(--bg-glass-subtle)', padding: '0.75rem', borderRadius: '8px' }}>
+                      <div style={{ flex: 1 }}>
+                        <h5 style={{ margin: 0, color: 'var(--text-primary)' }}>{item.product?.title || 'Unknown Product'}</h5>
+                        <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>Quantity: {item.quantity}</p>
+                      </div>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                        ₦{(item.priceAtPurchase * item.quantity).toFixed(2)}
+                      </div>
+                    </div>
+                  ))}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)', fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--text-primary)' }}>
+                    <span>Total Amount</span>
+                    <span style={{ color: 'var(--accent-gold)' }}>₦{selectedOrder.totalAmount.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="admin-modal-footer">
+              <button type="button" className="btn btn-ghost" onClick={() => setIsOrderModalOpen(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

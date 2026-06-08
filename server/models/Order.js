@@ -23,7 +23,8 @@ const orderSchema = new mongoose.Schema({
     country: { type: String, default: 'USA' }
   },
   paymentMethod: { type: String, default: 'Mock Checkout' },
-  trackingNumber: { type: String }
+  trackingNumber: { type: String },
+  trackingUrl: { type: String }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Order', orderSchema);

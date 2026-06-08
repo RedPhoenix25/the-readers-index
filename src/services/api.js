@@ -402,13 +402,13 @@ export async function fetchOrders() {
   return res.json();
 }
 
-export async function updateOrderStatus(id, status) {
-  const res = await fetch(`${API_BASE}/orders/${id}/status`, {
+export async function updateOrder(id, orderData) {
+  const res = await fetch(`${API_BASE}/orders/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ status }),
+    body: JSON.stringify(orderData),
   });
-  if (!res.ok) throw new Error('Failed to update order status');
+  if (!res.ok) throw new Error('Failed to update order');
   return res.json();
 }
 
@@ -425,5 +425,18 @@ export async function createOrder(orderData) {
     body: JSON.stringify(orderData),
   });
   if (!res.ok) throw new Error('Failed to place order');
+  return res.json();
+}
+
+export async function trackOrder(orderId, email) {
+  const res = await fetch(`${API_BASE}/orders/track`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ orderId, email }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Failed to track order');
+  }
   return res.json();
 }

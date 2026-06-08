@@ -783,11 +783,34 @@ app.get('/api/orders', async (req, res) => {
   }
 });
 
-app.put('/api/orders/:id/status', async (req, res) => {
+app.put('/api/orders/:id', async (req, res) => {
   try {
-    const { status } = req.body;
-    const order = await Order.findByIdAndUpdate(req.params.id, { status }, { new: true });
+    const { status, trackingNumber, trackingUrl } = req.body;
+    const updateData = {};
+    if (status !== undefined) updateData.status = status;
+    if (trackingNumber !== undefined) updateData.trackingNumber = trackingNumber;
+    if (trackingUrl !== undefined) updateData.trackingUrl = trackingUrl;
+
+    const order = await Order.findByIdAndUpdate(req.params.id, updateData, { new: true });
     if (!order) return res.status(404).json({ error: 'Order not found' });
+    res.json(order);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/orders/track', async (req, res) => {
+  try {
+    const { orderId, email } = req.body;
+    if (!orderId || !email) return res.status(400).json({ error: 'Order ID and Email are required' });
+    
+    if (orderId.length !== 24) {
+      return res.status(400).json({ error: 'Invalid Order ID format' });
+    }
+
+    const order = await Order.findOne({ _id: orderId, customerEmail: email }).populate('products.product');
+    if (!order) return res.status(404).json({ error: 'Order not found with those details' });
+    
     res.json(order);
   } catch (err) {
     res.status(500).json({ error: err.message });
