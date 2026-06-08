@@ -162,8 +162,7 @@ export default function Shop() {
 
               <div className="product-actions" style={{ marginTop: 'auto' }}>
                 <button 
-                  className="btn btn-primary" 
-                  style={{ width: '100%', justifyContent: 'center', padding: '0.8rem' }}
+                  className="product-modal-add-btn" 
                   onClick={() => {
                     addToCart(selectedProduct);
                     setSelectedProduct(null);
