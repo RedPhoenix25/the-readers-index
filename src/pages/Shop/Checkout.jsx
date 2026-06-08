@@ -60,14 +60,14 @@ export default function Checkout() {
       const newOrder = await createOrder(orderData);
       setOrderSuccess({
         id: newOrder._id,
-        items: [...cart],
-        total: cartTotal,
+        items: [...cartItems],
+        total: getCartTotal(),
         shipping: formData
       });
       clearCart();
       toast.success('Order placed successfully!');
     } catch (err) {
-      toast.error('Failed to place order. Please try again.');
+      toast.error(err.message || 'Failed to place order. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

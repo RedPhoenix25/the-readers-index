@@ -424,7 +424,10 @@ export async function createOrder(orderData) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(orderData),
   });
-  if (!res.ok) throw new Error('Failed to place order');
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Failed to place order');
+  }
   return res.json();
 }
 

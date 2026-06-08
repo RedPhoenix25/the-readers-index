@@ -11,7 +11,13 @@ export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState(() => {
     try {
       const saved = localStorage.getItem('s_cart');
-      return saved ? JSON.parse(saved) : [];
+      const items = saved ? JSON.parse(saved) : [];
+      // Clean up old local storage items that don't match MongoDB ObjectId format
+      if (items.some(item => !item._id || item._id.length !== 24)) {
+        localStorage.removeItem('s_cart');
+        return [];
+      }
+      return items;
     } catch {
       return [];
     }
