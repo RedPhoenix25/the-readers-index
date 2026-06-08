@@ -298,7 +298,7 @@
 }
 
 .product-actions {
-  margin-top: auto;
+  margin-top: var(--space-xl);
   display: flex;
   gap: var(--space-md);
 }
