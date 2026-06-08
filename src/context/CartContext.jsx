@@ -47,7 +47,6 @@ export function CartProvider({ children }) {
       toast.success(`${product.title} added to cart!`);
       return [...prev, { ...product, quantity: 1 }];
     });
-    setIsCartOpen(true); // Open drawer on add
   };
 
   const removeFromCart = (productId) => {

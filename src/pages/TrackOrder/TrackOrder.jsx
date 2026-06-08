@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { trackOrder } from '../../services/api';
 import toast from 'react-hot-toast';
 import { Package, Search, MapPin, Truck, CheckCircle2, Clock } from 'lucide-react';
@@ -152,6 +153,12 @@ export default function TrackOrder() {
               </div>
             </div>
           )}
+          
+          <div style={{ marginTop: '2rem', textAlign: 'center', width: '100%', maxWidth: '500px' }}>
+            <Link to="/shop" className="btn btn-secondary" style={{ width: '100%' }}>
+              Continue Shopping
+            </Link>
+          </div>
         </div>
       </div>
     </div>
