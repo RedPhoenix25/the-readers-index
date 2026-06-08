@@ -83,7 +83,12 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none;
+}
+
+a, button, input, select, textarea, [tabindex], div[role="button"] {
+  -webkit-tap-highlight-color: transparent !important;
 }
 
 html {
