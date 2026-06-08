@@ -23,7 +23,13 @@ export default function Checkout() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(null);
 
-  if (!cartItems || cartItems.length === 0) {
+  useEffect(() => {
+    if (orderSuccess) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [orderSuccess]);
+
+  if (!orderSuccess && (!cartItems || cartItems.length === 0)) {
     return (
       <div className="shop-page page-transition">
         <div className="shop-empty">
@@ -81,12 +87,6 @@ export default function Checkout() {
       default: return '₦';
     }
   };
-
-  useEffect(() => {
-    if (orderSuccess) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [orderSuccess]);
 
   if (orderSuccess) {
     return (
