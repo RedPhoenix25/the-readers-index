@@ -79,6 +79,26 @@
   }
 }
 
+@media (max-width: 400px) {
+  .shop-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-sm);
+  }
+  .shop-card-content {
+    padding: var(--space-sm);
+  }
+  .shop-card h3 {
+    font-size: 0.95rem;
+  }
+  .shop-card-price {
+    font-size: 0.9rem;
+  }
+  .btn-quick-add {
+    width: 28px;
+    height: 28px;
+  }
+}
+
 .shop-card {
   display: flex;
   flex-direction: column;
@@ -174,6 +194,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .shop-card-price {
