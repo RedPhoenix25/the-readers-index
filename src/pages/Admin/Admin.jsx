@@ -145,31 +145,10 @@ export default function Admin() {
     ), { duration: 5000 });
   };
 
-  // Poll for new data every 10 seconds when authenticated
+  // No background auto-refresh to prevent slowing down the page
   useEffect(() => {
-    let interval;
-    if (isAuthenticated) {
-      interval = setInterval(async () => {
-        // Fetch data sequentially to avoid overwhelming the database
-        try {
-          if (activeTab === 'orders' || activeTab === 'dashboard') {
-            const data = await fetchOrders().catch(() => null);
-            if (data) setOrders(data || []);
-          }
-          if (activeTab === 'shop' || activeTab === 'dashboard') {
-            const data = await fetchProducts().catch(() => null);
-            if (data) setProducts(data || []);
-          }
-          if (activeTab === 'subscribers') {
-            const data = await fetchSubscribers().catch(() => null);
-            if (data) setSubscribers(data || []);
-          }
-        } catch (err) {
-          // Ignore background fetch errors
-        }
-      }, 10000);
-    }
-    return () => clearInterval(interval);
+    // Only load data once on authentication
+    // No interval to avoid database connection exhaustion
   }, [isAuthenticated, activeTab]);
 
   // Simple mock authentication
@@ -185,44 +164,41 @@ export default function Admin() {
   };
 
   const loadData = async () => {
-    setLoading(true);
+    setLoading(false); // Disable global blocking loader, let sections populate as they arrive
     
     try {
-      // Fetch sequentially to prevent overwhelming the DB connection pool
-      const b = await fetchBooks({ limit: 100 }).catch(() => null);
-      if (b) setBooks(b.books || []);
+      // Staggered non-blocking fetches to prevent DB pool exhaustion while remaining fast
+      fetchOrders().then(o => setOrders(o || [])).catch(() => {});
+      await new Promise(r => setTimeout(r, 200));
       
-      const p = await fetchProducts().catch(() => null);
-      if (p) setProducts(p || []);
+      fetchProducts().then(p => setProducts(p || [])).catch(() => {});
+      await new Promise(r => setTimeout(r, 200));
       
-      const o = await fetchOrders().catch(() => null);
-      if (o) setOrders(o || []);
+      fetchBooks({ limit: 100 }).then(b => setBooks(b?.books || [])).catch(() => {});
+      await new Promise(r => setTimeout(r, 200));
       
-      const l = await fetchLists().catch(() => null);
-      if (l) setCuratedLists(l || []);
+      fetchLists().then(l => setCuratedLists(l || [])).catch(() => {});
+      await new Promise(r => setTimeout(r, 200));
       
-      const r = await fetchCurrentlyReading().catch(() => null);
-      if (r) {
-        setReadingStatus(r);
-        setReadingForm({
-          title: r.title || '',
-          author: r.author || '',
-          cover: r.cover || '',
-          progress: r.progress || 0,
-          thoughts: r.thoughts || ''
-        });
-      }
+      fetchSubscribers().then(s => setSubscribers(s || [])).catch(() => {});
+      await new Promise(r => setTimeout(r, 200));
       
-      const s = await fetchSubscribers().catch(() => null);
-      if (s) setSubscribers(s || []);
+      fetchUsers().then(u => setUsers(u || [])).catch(() => {});
+      await new Promise(r => setTimeout(r, 200));
       
-      const u = await fetchUsers().catch(() => null);
-      if (u) setUsers(u || []);
+      fetchCurrentlyReading().then(r => {
+        if (r) {
+          setReadingStatus(r);
+          setReadingForm({
+            title: r.title || '', author: r.author || '', cover: r.cover || '',
+            progress: r.progress || 0, thoughts: r.thoughts || ''
+          });
+        }
+      }).catch(() => {});
+      
     } catch (err) {
-      console.error('Critical error in loadData', err);
+      console.error('Error initiating staggered load', err);
     }
-
-    setLoading(false);
   };
   const handleOpenModal = (book = null) => {
     if (book) {
@@ -425,8 +401,9 @@ export default function Admin() {
     confirmAction('Are you sure you want to delete all Delivered and Cancelled orders? This cannot be undone.', async () => {
       try {
         const data = await deleteDeliveredOrders();
+        // Optimistic UI update to remove deleted orders instantly without a full reload
+        setOrders(prev => prev.filter(o => o.status !== 'Delivered' && o.status !== 'Cancelled'));
         toast.success(`Deleted ${data.count || 0} completed/cancelled orders`);
-        loadData();
       } catch (err) {
         toast.error('Failed to clean up orders');
       }
