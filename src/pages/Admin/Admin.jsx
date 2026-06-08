@@ -139,6 +139,29 @@ export default function Admin() {
     ), { duration: 5000 });
   };
 
+  // Poll for new data every 10 seconds when authenticated
+  useEffect(() => {
+    let interval;
+    if (isAuthenticated) {
+      interval = setInterval(() => {
+        // Fetch data silently in the background without triggering full loading states
+        // Fetch books
+        fetchBooks({ limit: 100 }).then(data => setBooks(data?.books || [])).catch(() => {});
+        // Fetch lists
+        fetchLists().then(data => setCuratedLists(data || [])).catch(() => {});
+        // Fetch subscribers
+        fetchSubscribers().then(data => setSubscribers(data || [])).catch(() => {});
+        // Fetch users
+        fetchUsers().then(data => setUsers(data || [])).catch(() => {});
+        // Fetch products
+        fetchProducts().then(data => setProducts(data || [])).catch(() => {});
+        // Fetch orders
+        fetchOrders().then(data => setOrders(data || [])).catch(() => {});
+      }, 10000);
+    }
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
+
   // Simple mock authentication
   const handleLogin = (e) => {
     e.preventDefault();

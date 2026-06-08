@@ -76,7 +76,7 @@ export default function AnalyticsDashboard({ orders }) {
     labels: recentSales.map(item => item.date),
     datasets: [
       {
-        label: 'Revenue ($)',
+        label: 'Revenue (₦)',
         data: recentSales.map(item => item.amount),
         borderColor: '#c9a84c',
         backgroundColor: 'rgba(201, 168, 76, 0.2)',
@@ -115,7 +115,7 @@ export default function AnalyticsDashboard({ orders }) {
         },
         ticks: {
           color: 'rgba(255, 255, 255, 0.6)',
-          callback: (value) => '$' + value
+          callback: (value) => '₦' + value
         }
       }
     }
@@ -133,7 +133,7 @@ export default function AnalyticsDashboard({ orders }) {
           <div className="stat-icon" style={{ padding: '10px', background: 'rgba(201, 168, 76, 0.1)', borderRadius: '8px', color: 'var(--accent-gold)' }}><DollarSign size={24} /></div>
           <div className="stat-info">
             <h3 style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '0.2rem' }}>Total Revenue</h3>
-            <p className="stat-value" style={{ color: 'var(--text-primary)', fontSize: '1.5rem', fontWeight: 'bold' }}>${totalRevenue.toFixed(2)}</p>
+            <p className="stat-value" style={{ color: 'var(--text-primary)', fontSize: '1.5rem', fontWeight: 'bold' }}>₦{totalRevenue.toFixed(2)}</p>
           </div>
         </div>
         
@@ -149,7 +149,7 @@ export default function AnalyticsDashboard({ orders }) {
           <div className="stat-icon" style={{ padding: '10px', background: 'rgba(201, 168, 76, 0.1)', borderRadius: '8px', color: 'var(--accent-gold)' }}><TrendingUp size={24} /></div>
           <div className="stat-info">
             <h3 style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '0.2rem' }}>Avg. Order Value</h3>
-            <p className="stat-value" style={{ color: 'var(--text-primary)', fontSize: '1.5rem', fontWeight: 'bold' }}>${averageOrderValue.toFixed(2)}</p>
+            <p className="stat-value" style={{ color: 'var(--text-primary)', fontSize: '1.5rem', fontWeight: 'bold' }}>₦{averageOrderValue.toFixed(2)}</p>
           </div>
         </div>
       </div>
