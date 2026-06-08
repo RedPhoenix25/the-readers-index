@@ -804,11 +804,10 @@ app.post('/api/orders/track', async (req, res) => {
     const { orderId, email } = req.body;
     if (!orderId || !email) return res.status(400).json({ error: 'Order ID and Email are required' });
     
-    if (orderId.length !== 24) {
-      return res.status(400).json({ error: 'Invalid Order ID format' });
-    }
+    // Allow tracking with either full 24-char ID or the 8-char short ID shown to users
+    const orders = await Order.find({ customerEmail: email }).populate('products.product');
+    const order = orders.find(o => o._id.toString().startsWith(orderId));
 
-    const order = await Order.findOne({ _id: orderId, customerEmail: email }).populate('products.product');
     if (!order) return res.status(404).json({ error: 'Order not found with those details' });
     
     res.json(order);
