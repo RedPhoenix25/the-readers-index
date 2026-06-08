@@ -764,6 +764,15 @@ app.delete('/api/products/:id', async (req, res) => {
 });
 
 // --- ORDERS (MOCK CHECKOUT) ---
+app.delete('/api/orders/delivered', async (req, res) => {
+  try {
+    const result = await Order.deleteMany({ status: 'Delivered' });
+    res.json({ message: `Deleted ${result.deletedCount} delivered orders`, count: result.deletedCount });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/orders', async (req, res) => {
   try {
     const order = new Order(req.body);

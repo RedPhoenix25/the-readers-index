@@ -50,7 +50,8 @@ import {
   updateProduct,
   deleteProduct,
   fetchOrders,
-  updateOrder
+  updateOrder,
+  deleteDeliveredOrders
 } from '../../services/api';
 import './Admin.css';
 import AnalyticsDashboard from './AnalyticsDashboard';
@@ -182,56 +183,30 @@ export default function Admin() {
   const loadData = async () => {
     setLoading(true);
     
-    // Fetch books
     try {
-      const data = await fetchBooks({ limit: 100 });
-      setBooks(data?.books || []);
-    } catch (err) { console.error('Failed to load books'); }
-
-    // Fetch lists
-    try {
-      const data = await fetchLists();
-      setCuratedLists(data || []);
-    } catch (err) { console.error('Failed to load lists'); }
-
-    // Fetch reading status
-    try {
-      const data = await fetchCurrentlyReading();
-      setReadingStatus(data);
-      if (data) {
-        setReadingForm({
-          title: data.title || '',
-          author: data.author || '',
-          cover: data.cover || '',
-          progress: data.progress || 0,
-          thoughts: data.thoughts || ''
-        });
-      }
-    } catch (err) { console.error('Failed to load reading status'); }
-
-    // Fetch subscribers
-    try {
-      const data = await fetchSubscribers();
-      setSubscribers(data || []);
-    } catch (err) { console.error('Failed to load subscribers'); }
-
-    // Fetch users
-    try {
-      const data = await fetchUsers();
-      setUsers(data || []);
-    } catch (err) { console.error('Failed to load users'); }
-
-    // Fetch products
-    try {
-      const data = await fetchProducts();
-      setProducts(data || []);
-    } catch (err) { console.error('Failed to load products'); }
-
-    // Fetch orders
-    try {
-      const data = await fetchOrders();
-      setOrders(data || []);
-    } catch (err) { console.error('Failed to load orders'); }
+      await Promise.allSettled([
+        fetchBooks({ limit: 100 }).then(data => setBooks(data?.books || [])).catch(() => console.error('Failed to load books')),
+        fetchLists().then(data => setCuratedLists(data || [])).catch(() => console.error('Failed to load lists')),
+        fetchCurrentlyReading().then(data => {
+          setReadingStatus(data);
+          if (data) {
+            setReadingForm({
+              title: data.title || '',
+              author: data.author || '',
+              cover: data.cover || '',
+              progress: data.progress || 0,
+              thoughts: data.thoughts || ''
+            });
+          }
+        }).catch(() => console.error('Failed to load reading status')),
+        fetchSubscribers().then(data => setSubscribers(data || [])).catch(() => console.error('Failed to load subscribers')),
+        fetchUsers().then(data => setUsers(data || [])).catch(() => console.error('Failed to load users')),
+        fetchProducts().then(data => setProducts(data || [])).catch(() => console.error('Failed to load products')),
+        fetchOrders().then(data => setOrders(data || [])).catch(() => console.error('Failed to load orders'))
+      ]);
+    } catch (err) {
+      console.error('Critical error in loadData', err);
+    }
 
     setLoading(false);
   };
@@ -403,11 +378,45 @@ export default function Admin() {
   const handleUpdateOrderStatus = async (id, status) => {
     try {
       await updateOrder(id, { status });
+      setOrders(prev => prev.map(o => o._id === id ? { ...o, status } : o));
       loadData();
       toast.success('Order status updated to ' + status);
     } catch (err) {
       toast.error('Failed to update order status');
     }
+  };
+
+  const handleDownloadOrdersCSV = () => {
+    const headers = ['Order ID', 'Date', 'Customer Name', 'Customer Email', 'Total Amount', 'Status', 'Tracking Number'];
+    const rows = orders.map(o => [
+      o._id,
+      new Date(o.createdAt).toLocaleDateString(),
+      `"${o.shippingAddress?.fullName || ''}"`,
+      o.customerEmail,
+      o.totalAmount,
+      o.status,
+      o.trackingNumber || ''
+    ]);
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `orders_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    toast.success('Orders exported to CSV');
+  };
+
+  const handleDeleteDeliveredOrders = () => {
+    confirmAction('Are you sure you want to delete all Delivered orders? This cannot be undone.', async () => {
+      try {
+        const data = await deleteDeliveredOrders();
+        toast.success(`Deleted ${data.count || 0} delivered orders`);
+        loadData();
+      } catch (err) {
+        toast.error('Failed to clean up delivered orders');
+      }
+    });
   };
 
   const handleUpdateOrderTracking = async (e) => {
@@ -1011,6 +1020,14 @@ export default function Admin() {
                       <h2>Orders</h2>
                       <p>View and manage incoming store orders.</p>
                     </div>
+                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                      <button className="btn btn-secondary" onClick={handleDownloadOrdersCSV}>
+                        <Download size={18} /> Export CSV
+                      </button>
+                      <button className="btn btn-outline" style={{ borderColor: 'var(--accent-rose)', color: 'var(--accent-rose)' }} onClick={handleDeleteDeliveredOrders}>
+                        <Trash2 size={18} /> Clean Delivered
+                      </button>
+                    </div>
                   </div>
 
                   <div className="admin-table-wrapper">
@@ -1054,10 +1071,12 @@ export default function Admin() {
                                   {order.status}
                                 </span>
                               </td>
-                              <td style={{ textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-                                <button className="btn-icon" title="View Details" onClick={() => handleOpenOrderModal(order)}>
-                                  <Eye size={16} />
-                                </button>
+                              <td style={{ textAlign: 'right' }}>
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                                  <button className="btn-icon" title="View Details" onClick={() => handleOpenOrderModal(order)}>
+                                    <Eye size={16} />
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           ))
@@ -1352,14 +1371,22 @@ export default function Admin() {
                   <p style={{ marginBottom: '0.2rem' }}><strong>Date:</strong> {new Date(selectedOrder.createdAt).toLocaleString()}</p>
                   <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center' }}>
                     <strong style={{ marginRight: '0.5rem' }}>Status:</strong>
-                    <select 
-                      value={selectedOrder.status} 
-                      onChange={(e) => {
-                        handleUpdateOrderStatus(selectedOrder._id, e.target.value);
-                        setSelectedOrder({...selectedOrder, status: e.target.value});
-                      }}
-                      className="admin-status-select"
-                    >
+                      <select 
+                        value={selectedOrder.status} 
+                        onChange={(e) => {
+                          handleUpdateOrderStatus(selectedOrder._id, e.target.value);
+                          setSelectedOrder({...selectedOrder, status: e.target.value});
+                        }}
+                        style={{
+                          padding: '0.6rem 1rem',
+                          background: 'var(--bg-primary)',
+                          border: '1px solid var(--border-subtle)',
+                          borderRadius: 'var(--radius-md)',
+                          color: 'var(--text-primary)',
+                          outline: 'none',
+                          cursor: 'pointer'
+                        }}
+                      >
                       <option value="Pending">Pending</option>
                       <option value="Processing">Processing</option>
                       <option value="Shipped">Shipped</option>

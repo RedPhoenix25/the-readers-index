@@ -412,6 +412,14 @@ export async function updateOrder(id, orderData) {
   return res.json();
 }
 
+export async function deleteDeliveredOrders() {
+  const res = await fetch(`${API_BASE}/orders/delivered`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error('Failed to delete delivered orders');
+  return res.json();
+}
+
 export async function fetchProductById(id) {
   const res = await resilientFetch(`${API_BASE}/products/${id}`);
   if (!res.ok) throw new Error('Failed to fetch product details');
