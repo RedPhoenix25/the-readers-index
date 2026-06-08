@@ -21,7 +21,7 @@ export default function Checkout() {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [orderSuccess, setOrderSuccess] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState(null);
 
   if (!cartItems || cartItems.length === 0) {
     return (
@@ -57,9 +57,9 @@ export default function Checkout() {
     };
 
     try {
-      await createOrder(orderData);
+      const newOrder = await createOrder(orderData);
       clearCart();
-      setOrderSuccess(true);
+      setOrderSuccess(newOrder._id);
       toast.success('Order placed successfully!');
     } catch (err) {
       toast.error('Failed to place order. Please try again.');
@@ -80,13 +80,27 @@ export default function Checkout() {
   if (orderSuccess) {
     return (
       <div className="checkout-page page-transition">
-        <div className="checkout-success glass-card animate-scale-in">
-          <div className="checkout-success-icon">
+        <div className="checkout-success glass-card animate-scale-in" style={{ padding: 'var(--space-3xl)', textAlign: 'center', maxWidth: '500px', margin: '4rem auto' }}>
+          <div className="checkout-success-icon" style={{ display: 'inline-flex', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', padding: '1.5rem', borderRadius: '50%', marginBottom: '1.5rem' }}>
             <Check size={40} />
           </div>
-          <h2>Order Confirmed</h2>
-          <p>Your mock order has been placed successfully and is now pending in the Admin Dashboard.</p>
-          <Link to="/shop" className="btn btn-primary">Continue Shopping</Link>
+          <h2 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Order Confirmed!</h2>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', lineHeight: '1.6' }}>
+            Your mock order has been placed successfully and is now pending.
+          </p>
+          <div style={{ background: 'var(--bg-primary)', padding: '1.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', marginBottom: '2rem' }}>
+            <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Your Order ID</p>
+            <p style={{ fontSize: '1.5rem', fontWeight: 'bold', fontFamily: 'monospace', color: 'var(--accent-gold)', letterSpacing: '2px' }}>
+              {orderSuccess.substring(0, 8)}
+            </p>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '1rem' }}>
+              Please save this Order ID. You can use it to track your order status from the Track Order page.
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+            <Link to="/track-order" className="btn btn-outline">Track Order</Link>
+            <Link to="/shop" className="btn btn-primary">Continue Shopping</Link>
+          </div>
         </div>
       </div>
     );
