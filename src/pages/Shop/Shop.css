@@ -261,14 +261,14 @@
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   width: 100%;
-  max-width: 900px;
-  max-height: 90vh;
+  max-width: 750px;
+  max-height: 85vh;
   overflow-y: auto;
   position: relative;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-2xl);
-  padding: var(--space-2xl);
+  grid-template-columns: 1fr 1.2fr;
+  gap: var(--space-xl);
+  padding: var(--space-xl);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
@@ -308,8 +308,8 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 1.2rem;
-  font-size: 1.1rem;
+  padding: 1rem;
+  font-size: 1.05rem;
   background: linear-gradient(135deg, var(--accent-gold), #b89136);
   color: var(--bg-primary);
   border: none;
@@ -338,22 +338,44 @@
 
 @media (max-width: 768px) {
   .product-modal-overlay {
-    padding: var(--space-sm);
+    padding: var(--space-md);
   }
   
   .product-modal-content {
     grid-template-columns: 1fr;
-    padding: var(--space-xl) var(--space-lg);
-    gap: var(--space-xl);
-    max-height: 95vh;
+    padding: var(--space-lg);
+    gap: var(--space-md);
+    max-height: 90vh;
+  }
+
+  .product-gallery {
+    align-items: center;
+  }
+
+  .product-modal-content .product-image-main {
+    max-width: 200px;
+    margin: 0 auto;
   }
   
   .product-modal-content h1 {
-    font-size: 1.5rem !important;
+    font-size: 1.4rem !important;
+    text-align: center;
   }
   
   .product-modal-content .product-price {
     font-size: 1.2rem !important;
+    text-align: center;
+    margin-bottom: var(--space-md) !important;
+  }
+
+  .product-modal-content .product-description {
+    font-size: 0.9rem !important;
+    margin-bottom: var(--space-md) !important;
+    text-align: center;
+  }
+
+  .product-modal-content .product-stock-status {
+    justify-content: center;
   }
   
   .product-modal-close {
