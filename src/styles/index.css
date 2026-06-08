@@ -68,6 +68,14 @@
   --nav-height: 72px;
 }
 
+@media (max-width: 768px) {
+  :root {
+    --space-2xl: 2rem;
+    --space-3xl: 2.5rem;
+    --space-4xl: 3rem;
+  }
+}
+
 /* --- Reset & Base --- */
 *,
 *::before,
