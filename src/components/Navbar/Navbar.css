@@ -159,6 +159,14 @@
   transition: all var(--transition-fast);
 }
 
+.navbar__theme-toggle--mobile {
+  display: none;
+}
+
+.navbar__theme-toggle--desktop {
+  display: flex;
+}
+
 .navbar__theme-toggle:hover {
   color: var(--accent-gold);
   background: var(--accent-gold-dim);
@@ -166,8 +174,23 @@
 
 /* Mobile */
 @media (max-width: 768px) {
+  .navbar__mobile-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
   .navbar__toggle {
     display: block;
+  }
+
+  .navbar__theme-toggle--desktop {
+    display: none;
+  }
+
+  .navbar__theme-toggle--mobile {
+    display: flex;
+    margin-left: 0;
   }
 
   .navbar__links {

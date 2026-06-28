@@ -71,6 +71,16 @@ export default function Navbar() {
             </Link>
           ))}
           
+          {/* Desktop Theme Toggle */}
+          <button 
+            className="navbar__theme-toggle navbar__theme-toggle--desktop" 
+            onClick={toggleTheme} 
+            aria-label="Toggle theme"
+            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          >
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+
           {user ? (
             <div className="navbar__user">
               <Link to="/my-shelf" className="navbar__link navbar__link--user">
@@ -85,25 +95,28 @@ export default function Navbar() {
               Sign In
             </Link>
           )}
+        </div>
 
+        <div className="navbar__mobile-controls">
+          {/* Mobile Theme Toggle */}
           <button 
-            className="navbar__theme-toggle" 
+            className="navbar__theme-toggle navbar__theme-toggle--mobile" 
             onClick={toggleTheme} 
             aria-label="Toggle theme"
             title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
           >
             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
           </button>
-        </div>
 
-        <button
-          className="navbar__toggle"
-          onClick={() => setIsOpen(!isOpen)}
-          aria-label="Toggle menu"
-          id="nav-toggle"
-        >
-          {isOpen ? <X size={22} /> : <Menu size={22} />}
-        </button>
+          <button
+            className="navbar__toggle"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-label="Toggle menu"
+            id="nav-toggle"
+          >
+            {isOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
       </div>
     </nav>
   );
