@@ -6,6 +6,7 @@
 
 /* ===== CONTROLS ===== */
 .bookshelf-controls {
+  padding-top: var(--space-xl);
   padding-bottom: var(--space-xl);
   border-bottom: 1px solid var(--border-subtle);
 }
@@ -672,7 +673,7 @@
 
 @media (max-width: 480px) {
   .genre-explorer {
-    padding: var(--space-lg) 0;
+    padding: var(--space-lg) 0 var(--space-2xl) 0;
   }
   .genre-explorer-header {
     margin-bottom: var(--space-md);

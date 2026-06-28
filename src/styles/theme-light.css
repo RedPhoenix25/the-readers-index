@@ -1,8 +1,8 @@
 [data-theme='light'] {
   /* Backgrounds */
-  --bg-primary: #F4F4F0; /* Slightly darker off-white for main background */
+  --bg-primary: #EBEBE4; /* Darker off-white for more contrast against pure white cards */
   --bg-secondary: #FFFFFF; /* Pure white for cards, inputs, and elevated elements */
-  --bg-tertiary: #FAFAF9;
+  --bg-tertiary: #F5F5F0;
   --bg-glass: rgba(255, 255, 255, 0.75);
   --bg-glass-light: rgba(255, 255, 255, 0.6);
 
@@ -22,14 +22,14 @@
   --text-on-gold: #0D0B08;
 
   /* Borders */
-  --border-subtle: rgba(0, 0, 0, 0.05);
-  --border-light: rgba(0, 0, 0, 0.1);
-  --border-medium: rgba(0, 0, 0, 0.15);
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-light: rgba(0, 0, 0, 0.15);
+  --border-medium: rgba(0, 0, 0, 0.22);
 
   /* Shadows */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.15);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.18);
   --shadow-glow: 0 0 30px rgba(161, 122, 32, 0.15);
 
   /* Gradients & Particles - customized for light background */
