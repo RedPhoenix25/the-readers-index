@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import heroBg from '../../assets/images/hero-bg.png';
+import heroBgLight from '../../assets/images/hero-bg-light.png';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { ArrowRight, BookOpen, ChevronRight, Sparkles, Mail, Star, Users, Library } from 'lucide-react';
 import BookCard from '../../components/BookCard/BookCard';
 import BookModal from '../../components/BookModal/BookModal';
 import { fetchBooks, fetchCurrentlyReading, subscribe } from '../../services/api';
+import { useTheme } from '../../context/ThemeContext';
 import './Home.css';
 
 const heroQuotes = [
@@ -16,6 +18,7 @@ const heroQuotes = [
 ];
 
 export default function Home() {
+  const { theme } = useTheme();
   const [selectedBook, setSelectedBook] = useState(null);
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [email, setEmail] = useState('');
@@ -95,7 +98,7 @@ export default function Home() {
       <section 
         className="hero" 
         id="hero-section" 
-        style={{ '--hero-bg': `url(${heroBg})` }}
+        style={{ '--hero-bg': `url(${theme === 'light' ? heroBgLight : heroBg})` }}
       >
         {/* Floating dust particles */}
         <div className="hero__particles">

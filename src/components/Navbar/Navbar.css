@@ -146,6 +146,24 @@
   color: var(--accent-rose) !important;
 }
 
+.navbar__theme-toggle {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 0.5rem;
+  margin-left: var(--space-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-fast);
+}
+
+.navbar__theme-toggle:hover {
+  color: var(--accent-gold);
+  background: var(--accent-gold-dim);
+}
+
 /* Mobile */
 @media (max-width: 768px) {
   .navbar__toggle {

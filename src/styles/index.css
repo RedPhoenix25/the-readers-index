@@ -68,6 +68,37 @@
   --nav-height: 72px;
 }
 
+[data-theme='light'] {
+  /* Backgrounds */
+  --bg-primary: #FAFAF9;
+  --bg-secondary: #F5F5F4;
+  --bg-tertiary: #E7E5E4;
+  --bg-glass: rgba(255, 255, 255, 0.75);
+  --bg-glass-light: rgba(255, 255, 255, 0.6);
+
+  /* Accents */
+  --accent-gold: #B89230;
+  --accent-gold-dim: rgba(184, 146, 48, 0.15);
+  /* Keeping other accents the same, they should still look okay */
+
+  /* Text */
+  --text-primary: #1C1917;
+  --text-secondary: #44403C;
+  --text-muted: #78716C;
+  --text-accent: #B89230;
+
+  /* Borders */
+  --border-subtle: rgba(0, 0, 0, 0.05);
+  --border-light: rgba(0, 0, 0, 0.1);
+  --border-medium: rgba(0, 0, 0, 0.15);
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.15);
+  --shadow-glow: 0 0 30px rgba(184, 146, 48, 0.15);
+}
+
 @media (max-width: 768px) {
   :root {
     --space-2xl: 2rem;

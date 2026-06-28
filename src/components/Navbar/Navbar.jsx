@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, BookOpen, Search, User, LogOut } from 'lucide-react';
+import { Menu, X, BookOpen, Search, User, LogOut, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import './Navbar.css';
 
 const navLinks = [
@@ -16,6 +17,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
 
   useEffect(() => {
@@ -83,6 +85,15 @@ export default function Navbar() {
               Sign In
             </Link>
           )}
+
+          <button 
+            className="navbar__theme-toggle" 
+            onClick={toggleTheme} 
+            aria-label="Toggle theme"
+            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          >
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
         </div>
 
         <button
