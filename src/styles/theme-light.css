@@ -1,8 +1,8 @@
 [data-theme='light'] {
   /* Backgrounds */
-  --bg-primary: #FAFAF9;
-  --bg-secondary: #F5F5F4;
-  --bg-tertiary: #E7E5E4;
+  --bg-primary: #F4F4F0; /* Slightly darker off-white for main background */
+  --bg-secondary: #FFFFFF; /* Pure white for cards, inputs, and elevated elements */
+  --bg-tertiary: #FAFAF9;
   --bg-glass: rgba(255, 255, 255, 0.75);
   --bg-glass-light: rgba(255, 255, 255, 0.6);
 

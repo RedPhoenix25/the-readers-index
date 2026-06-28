@@ -1,7 +1,7 @@
 /* ===== BOOKSHELF HERO ===== */
 .bookshelf-hero {
   padding: calc(var(--nav-height) + var(--space-4xl)) 0 var(--space-2xl);
-  background: radial-gradient(ellipse at 30% 30%, rgba(201, 168, 76, 0.05), transparent 60%);
+  background: var(--mission-bg-gradient);
 }
 
 /* ===== CONTROLS ===== */
