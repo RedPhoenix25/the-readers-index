@@ -232,7 +232,7 @@
 
 .btn-quick-add:hover:not(:disabled) {
   background: var(--accent-gold);
-  color: var(--bg-primary);
+  color: var(--text-on-gold);
   transform: scale(1.1);
 }
 
@@ -324,7 +324,7 @@
   padding: 1rem;
   font-size: 1.05rem;
   background: linear-gradient(135deg, var(--accent-gold), #b89136);
-  color: var(--bg-primary);
+  color: var(--text-on-gold);
   border: none;
   border-radius: var(--radius-md);
   box-shadow: 0 4px 15px rgba(201, 168, 76, 0.4);

@@ -205,7 +205,7 @@
 
 .settings-avatar-edit-btn:hover {
   background: var(--accent-gold);
-  color: var(--bg-primary);
+  color: var(--text-on-gold);
   border-color: var(--accent-gold);
 }
 

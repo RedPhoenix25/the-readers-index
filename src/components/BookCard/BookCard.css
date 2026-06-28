@@ -90,7 +90,7 @@
 
 .book-card__action-btn--primary {
   background: linear-gradient(135deg, var(--accent-gold), var(--accent-amber)) !important;
-  color: var(--bg-primary) !important;
+  color: var(--text-on-gold) !important;
   border: none !important;
   font-weight: 700;
   box-shadow: 0 4px 15px rgba(201, 168, 76, 0.3);

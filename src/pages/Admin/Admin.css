@@ -61,7 +61,7 @@
 
 .admin-page-container {
   min-height: 100vh;
-  background-color: var(--bg-primary);
+  background-color: var(--text-on-gold);
 }
 
 .admin-layout {
@@ -92,7 +92,7 @@
   height: 44px;
   border-radius: var(--radius-md);
   background: var(--accent-gold);
-  color: var(--bg-primary);
+  color: var(--text-on-gold);
   display: flex;
   align-items: center;
   justify-content: center;

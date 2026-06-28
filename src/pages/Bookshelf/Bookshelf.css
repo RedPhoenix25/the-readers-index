@@ -299,7 +299,7 @@
 
 .bookshelf-page-btn.active {
   background: var(--accent-gold);
-  color: var(--bg-primary);
+  color: var(--text-on-gold);
   font-weight: 600;
 }
 
@@ -335,7 +335,7 @@
   padding: 0.3rem 0.8rem;
   font-size: 0.75rem;
   font-weight: 500;
-  color: var(--bg-primary);
+  color: var(--text-on-gold);
   background: var(--accent-gold);
   border: none;
   border-radius: var(--radius-full);

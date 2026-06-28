@@ -53,7 +53,7 @@
   height: 36px;
   border-radius: 50%;
   background: var(--accent-gold);
-  color: var(--bg-primary);
+  color: var(--text-on-gold);
   border: 3px solid var(--bg-primary);
   display: flex;
   align-items: center;
@@ -174,7 +174,7 @@
 
 .mark-read-btn:hover {
   background: var(--accent-gold);
-  color: var(--bg-primary);
+  color: var(--text-on-gold);
   transform: scale(1.05);
 }
 

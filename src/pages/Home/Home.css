@@ -80,7 +80,7 @@
 }
 
 .hero__title-main {
-  color: #FFFFFF;
+  color: var(--text-primary);
 }
 
 .hero__quote {
