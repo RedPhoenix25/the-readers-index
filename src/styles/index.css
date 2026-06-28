@@ -4,39 +4,6 @@
 
 /* --- CSS Custom Properties --- */
 :root {
-  /* Backgrounds */
-  --bg-primary: #0D0B08;
-  --bg-secondary: #1A1613;
-  --bg-tertiary: #231F1A;
-  --bg-glass: rgba(26, 22, 19, 0.75);
-  --bg-glass-light: rgba(35, 31, 26, 0.6);
-
-  /* Accents */
-  --accent-gold: #C9A84C;
-  --accent-gold-dim: rgba(201, 168, 76, 0.15);
-  --accent-amber: #E8A849;
-  --accent-warm: #D4956A;
-  --accent-rose: #C47A7A;
-  --accent-brown: #8D6E63;
-
-  /* Text */
-  --text-primary: #F5F0E8;
-  --text-secondary: #A89F91;
-  --text-muted: #6B6359;
-  --text-accent: #C9A84C;
-  --text-on-gold: #0D0B08;
-
-  /* Borders */
-  --border-subtle: rgba(201, 168, 76, 0.1);
-  --border-light: rgba(201, 168, 76, 0.2);
-  --border-medium: rgba(201, 168, 76, 0.35);
-
-  /* Shadows */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 30px rgba(201, 168, 76, 0.15);
-
   /* Typography */
   --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -67,37 +34,6 @@
   /* Layout */
   --max-width: 1200px;
   --nav-height: 72px;
-}
-
-[data-theme='light'] {
-  /* Backgrounds */
-  --bg-primary: #FAFAF9;
-  --bg-secondary: #F5F5F4;
-  --bg-tertiary: #E7E5E4;
-  --bg-glass: rgba(255, 255, 255, 0.75);
-  --bg-glass-light: rgba(255, 255, 255, 0.6);
-
-  /* Accents */
-  --accent-gold: #A17A20;
-  --accent-gold-dim: rgba(161, 122, 32, 0.15);
-  /* Keeping other accents the same, they should still look okay */
-
-  /* Text */
-  --text-primary: #1C1917;
-  --text-secondary: #44403C;
-  --text-muted: #78716C;
-  --text-accent: #A17A20;
-
-  /* Borders */
-  --border-subtle: rgba(0, 0, 0, 0.05);
-  --border-light: rgba(0, 0, 0, 0.1);
-  --border-medium: rgba(0, 0, 0, 0.15);
-
-  /* Shadows */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.15);
-  --shadow-glow: 0 0 30px rgba(161, 122, 32, 0.15);
 }
 
 @media (max-width: 768px) {
@@ -131,7 +67,7 @@ html {
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--text-on-gold);
+  background-color: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.6;
   overflow-x: hidden;
@@ -146,9 +82,7 @@ body::before {
   left: 0;
   width: 100%;
   height: 100%;
-  background:
-    radial-gradient(ellipse at 20% 0%, rgba(201, 168, 76, 0.04) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 100%, rgba(201, 168, 76, 0.03) 0%, transparent 60%);
+  background: var(--page-gradient);
   pointer-events: none;
   z-index: 0;
 }

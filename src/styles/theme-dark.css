@@ -1,0 +1,46 @@
+:root, [data-theme='dark'] {
+  /* Backgrounds */
+  --bg-primary: #0D0B08;
+  --bg-secondary: #1A1613;
+  --bg-tertiary: #231F1A;
+  --bg-glass: rgba(26, 22, 19, 0.75);
+  --bg-glass-light: rgba(35, 31, 26, 0.6);
+
+  /* Accents */
+  --accent-gold: #C9A84C;
+  --accent-gold-dim: rgba(201, 168, 76, 0.15);
+  --accent-amber: #E8A849;
+  --accent-warm: #D4956A;
+  --accent-rose: #C47A7A;
+  --accent-brown: #8D6E63;
+
+  /* Text */
+  --text-primary: #F5F0E8;
+  --text-secondary: #A89F91;
+  --text-muted: #6B6359;
+  --text-accent: #C9A84C;
+  --text-on-gold: #0D0B08;
+
+  /* Borders */
+  --border-subtle: rgba(201, 168, 76, 0.1);
+  --border-light: rgba(201, 168, 76, 0.2);
+  --border-medium: rgba(201, 168, 76, 0.35);
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 30px rgba(201, 168, 76, 0.15);
+
+  /* Gradients & Particles */
+  --page-gradient: 
+    radial-gradient(ellipse at 20% 0%, rgba(201, 168, 76, 0.04) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 100%, rgba(201, 168, 76, 0.03) 0%, transparent 60%);
+  --hero-gradient: 
+    radial-gradient(ellipse at 30% 20%, rgba(201, 168, 76, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 80%, rgba(212, 149, 106, 0.06) 0%, transparent 50%);
+  --hero-particle-color: rgba(201, 168, 76, 0.4);
+  
+  /* Feature cards, mission cards background */
+  --mission-bg-gradient: radial-gradient(ellipse at 50% 0%, rgba(201, 168, 76, 0.06), transparent 60%);
+}

@@ -7,9 +7,7 @@
   justify-content: center;
   overflow: hidden;
   padding: calc(var(--nav-height) + var(--space-3xl)) 0 150px;
-  background:
-    radial-gradient(ellipse at 30% 20%, rgba(201, 168, 76, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 80%, rgba(212, 149, 106, 0.06) 0%, transparent 50%);
+  background: var(--hero-gradient);
 }
 
 .hero::before {
@@ -36,7 +34,7 @@
 .hero__particle {
   position: absolute;
   bottom: -10px;
-  background: rgba(201, 168, 76, 0.4);
+  background: var(--hero-particle-color);
   border-radius: 50%;
   animation: dustFloat linear infinite;
 }
@@ -331,7 +329,7 @@
   text-align: center;
   padding: var(--space-4xl) var(--space-2xl);
   background:
-    radial-gradient(ellipse at 50% 0%, rgba(201, 168, 76, 0.06), transparent 60%),
+    var(--mission-bg-gradient),
     var(--bg-secondary);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
