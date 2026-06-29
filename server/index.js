@@ -740,15 +740,41 @@ app.post('/api/newsletter/send', async (req, res) => {
       return res.status(404).json({ error: 'No subscribers found for this audience' });
     }
 
-    const mailOptions = {
-      from: `"The Readers Index" <${process.env.EMAIL_USER || 'thereadersindex@gmail.com'}>`,
-      to: process.env.EMAIL_USER || 'thereadersindex@gmail.com',
-      bcc: emails,
-      subject: subject,
-      html: message
-    };
+    if (process.env.RESEND_API_KEY) {
+      console.log('Sending newsletter via Resend HTTP API...');
+      const resendResponse = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: (process.env.EMAIL_USER && !process.env.EMAIL_USER.endsWith('@gmail.com')) 
+            ? `"The Readers Index" <${process.env.EMAIL_USER}>` 
+            : `"The Readers Index" <onboarding@resend.dev>`,
+          to: process.env.EMAIL_USER || 'thereadersindex@gmail.com',
+          bcc: emails,
+          subject: subject,
+          html: message
+        })
+      });
 
-    await transporter.sendMail(mailOptions);
+      const resendData = await resendResponse.json();
+      if (!resendResponse.ok) {
+        throw new Error(resendData.message || 'Resend HTTP API failure');
+      }
+      console.log('Newsletter sent successfully via Resend!');
+    } else {
+      console.log('Sending newsletter via standard SMTP...');
+      const mailOptions = {
+        from: `"The Readers Index" <${process.env.EMAIL_USER || 'thereadersindex@gmail.com'}>`,
+        to: process.env.EMAIL_USER || 'thereadersindex@gmail.com',
+        bcc: emails,
+        subject: subject,
+        html: message
+      };
+      await transporter.sendMail(mailOptions);
+    }
 
     res.json({ message: `Newsletter sent successfully to ${emails.length} subscriber(s)` });
   } catch (err) {
