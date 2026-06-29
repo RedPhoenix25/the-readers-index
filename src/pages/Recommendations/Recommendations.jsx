@@ -361,8 +361,8 @@ export default function Recommendations() {
                   >
                     <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
                       <BookOpen size={32} color="#C9A84C" style={{ margin: '0 auto 0.5rem' }} />
-                      <h2 style={{ color: '#F5F0E8', fontFamily: '"Playfair Display", serif', fontSize: '1.8rem', margin: '0 0 0.25rem' }}>My Perfect Reads</h2>
-                      <p style={{ color: '#A89F91', fontSize: '0.9rem', margin: 0 }}>Curated by The Readers Index</p>
+                      <h2 style={{ color: 'var(--text-primary)', fontFamily: '"Playfair Display", serif', fontSize: '1.8rem', margin: '0 0 0.25rem' }}>My Perfect Reads</h2>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: 0 }}>Curated by The Readers Index</p>
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', width: '100%', maxWidth: '340px', margin: '0 auto' }}>
@@ -376,7 +376,7 @@ export default function Recommendations() {
                               style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                             />
                           </div>
-                          <h3 style={{ color: '#F5F0E8', fontSize: '0.8rem', margin: '0.5rem 0 0', textAlign: 'center', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.3 }}>
+                          <h3 style={{ color: 'var(--text-primary)', fontSize: '0.8rem', margin: '0.5rem 0 0', textAlign: 'center', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.3 }}>
                             {book.title}
                           </h3>
                         </div>
