@@ -1089,17 +1089,17 @@ export default function Admin() {
                             <div className="preview-dot yellow"></div>
                             <div className="preview-dot green"></div>
                           </div>
-                          <div className="live-preview-content" dangerouslySetInnerHTML={{ __html: \`
+                          <div className="live-preview-content" dangerouslySetInnerHTML={{ __html: `
                             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1a1a2e; color: #d4cfc7; padding: 2rem; border-radius: 8px;">
                               <div style="text-align: center; margin-bottom: 2rem;">
                                 <h1 style="color: #C9A84C; font-size: 1.5rem; margin: 0; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;">The Reader's Index</h1>
                                 <hr style="border: none; border-top: 1px solid rgba(201,168,76,0.15); margin-top: 1.5rem;" />
                               </div>
                               <div style="line-height: 1.6; font-size: 0.95rem;">
-                                \${newsletterForm.message || '<p style="color: rgba(255,255,255,0.2);">Start typing to preview...</p>'}
+                                ${newsletterForm.message || '<p style="color: rgba(255,255,255,0.2);">Start typing to preview...</p>'}
                               </div>
                             </div>
-                          \`}} />
+                          `}} />
                         </div>
                       </div>
                     </div>
@@ -1126,17 +1126,17 @@ export default function Admin() {
                       <div className="preview-dot yellow"></div>
                       <div className="preview-dot green"></div>
                     </div>
-                    <div className="live-preview-content" dangerouslySetInnerHTML={{ __html: \`
+                    <div className="live-preview-content" dangerouslySetInnerHTML={{ __html: `
                       <div style="max-width: 600px; margin: 0 auto; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1a1a2e; color: #d4cfc7; padding: 2.5rem; border-radius: 12px; border: 1px solid rgba(201,168,76,0.2);">
                         <div style="text-align: center; margin-bottom: 2rem;">
                           <h1 style="color: #C9A84C; font-size: 1.8rem; margin: 0; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;">The Reader's Index</h1>
                           <hr style="border: none; border-top: 1px solid rgba(201,168,76,0.15); margin-top: 1.5rem;" />
                         </div>
                         <div style="line-height: 1.7; font-size: 1.05rem; color: #d4cfc7;">
-                          \${newsletterForm.message || '<p style="color: rgba(255,255,255,0.2);">Start typing to preview...</p>'}
+                          ${newsletterForm.message || '<p style="color: rgba(255,255,255,0.2);">Start typing to preview...</p>'}
                         </div>
                       </div>
-                    \`}} />
+                    `}} />
                   </div>
                 </div>
               </div>
