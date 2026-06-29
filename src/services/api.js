@@ -450,14 +450,14 @@ export async function fetchUserOrders(token) {
   return res.json();
 }
 
-export async function deleteUserOrder(token, orderId) {
-  const res = await fetch(`${API_BASE}/user/orders/${orderId}`, {
+export async function deleteAllPastOrders(token) {
+  const res = await fetch(`${API_BASE}/user/orders/past`, {
     method: 'DELETE',
     headers: { 'Authorization': `Bearer ${token}` }
   });
   if (!res.ok) {
     const errorData = await res.json();
-    throw new Error(errorData.error || 'Failed to delete order');
+    throw new Error(errorData.error || 'Failed to delete past orders');
   }
   return res.json();
 }

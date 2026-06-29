@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import BookCard from '../../components/BookCard/BookCard';
 import BookModal from '../../components/BookModal/BookModal';
 import { uploadAvatar, API_BASE } from '../../services/api';
-import { fetchUserOrders, deleteUserOrder } from '../../services/api';
+import { fetchUserOrders, deleteAllPastOrders } from '../../services/api';
 import toast from 'react-hot-toast';
 import './MyShelf.css';
 
@@ -152,16 +152,37 @@ export default function MyShelf() {
     loadUserData();
   }, [token]);
 
-  const handleDeleteOrder = async (e, orderId) => {
-    e.stopPropagation();
-    if (!window.confirm('Are you sure you want to delete this order from your history?')) return;
-    try {
-      await deleteUserOrder(token, orderId);
-      setOrders(prev => prev.filter(o => o._id !== orderId));
-      toast.success('Order deleted');
-    } catch (error) {
-      toast.error('Failed to delete order');
-    }
+  const handleDeleteAllPastOrders = () => {
+    toast((t) => (
+      <div>
+        <p style={{ marginBottom: '1rem' }}>Are you sure you want to clear all past orders?</p>
+        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+          <button 
+            className="btn btn-secondary" 
+            style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}
+            onClick={() => toast.dismiss(t.id)}
+          >
+            Cancel
+          </button>
+          <button 
+            className="btn btn-primary" 
+            style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem', background: 'var(--accent-red, #ef4444)', borderColor: 'var(--accent-red, #ef4444)' }}
+            onClick={async () => {
+              toast.dismiss(t.id);
+              try {
+                await deleteAllPastOrders(token);
+                setOrders(prev => prev.filter(o => !['Delivered', 'Cancelled'].includes(o.status)));
+                toast.success('Past orders cleared');
+              } catch (error) {
+                toast.error('Failed to clear orders');
+              }
+            }}
+          >
+            Clear All
+          </button>
+        </div>
+      </div>
+    ), { duration: Infinity });
   };
 
   const handleRemoveBook = async (e, bookId) => {
@@ -443,7 +464,18 @@ export default function MyShelf() {
               </div>
 
               <div className="orders-section past-orders">
-                <h3 className="orders-section-title">Past Orders</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                  <h3 className="orders-section-title" style={{ margin: 0 }}>Past Orders</h3>
+                  {pastOrders.length > 0 && (
+                    <button 
+                      className="btn btn-outline" 
+                      onClick={handleDeleteAllPastOrders}
+                      style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', color: 'var(--accent-red, #ef4444)', borderColor: 'var(--accent-red, #ef4444)' }}
+                    >
+                      <Trash2 size={16} style={{ marginRight: '0.5rem' }} /> Clear History
+                    </button>
+                  )}
+                </div>
                 {pastOrders.length === 0 ? (
                   <div className="empty-orders glass-card">
                     <p>No past orders.</p>
@@ -466,13 +498,6 @@ export default function MyShelf() {
                                 title="Copy Full Order ID"
                               >
                                 <Copy size={14} />
-                              </button>
-                              <button 
-                                onClick={(e) => handleDeleteOrder(e, order._id)}
-                                style={{ background: 'transparent', border: 'none', color: 'var(--accent-red, #ef4444)', cursor: 'pointer', padding: '4px', marginLeft: 'auto' }}
-                                title="Delete Order History"
-                              >
-                                <Trash2 size={16} />
                               </button>
                             </div>
                             <p className="order-date">{new Date(order.createdAt).toLocaleDateString()}</p>
