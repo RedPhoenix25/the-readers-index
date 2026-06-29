@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { BookOpen, Trash2, Heart, Clock, CheckCircle2, Bookmark, Camera, User, Settings, ChevronLeft, ChevronRight, Package, MapPin, Truck, Search } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import BookCard from '../../components/BookCard/BookCard';
@@ -112,6 +112,15 @@ export default function MyShelf() {
   const [expandedOrder, setExpandedOrder] = useState(null);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tabParam = params.get('tab');
+    if (tabParam === 'orders' || tabParam === 'library') {
+      setActiveTab(tabParam);
+    }
+  }, [location]);
 
   useEffect(() => {
     if (!authLoading && !user) {

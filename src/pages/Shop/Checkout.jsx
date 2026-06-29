@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { Check, ArrowLeft, Loader } from 'lucide-react';
+import { Check, ArrowLeft, Loader, Copy } from 'lucide-react';
 import { createOrder } from '../../services/api';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -102,13 +102,24 @@ export default function Checkout() {
             Your mock order has been placed successfully and is now pending.
           </p>
           <div style={{ background: 'var(--bg-primary)', padding: '1.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', marginBottom: '2rem' }}>
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Your Order ID</p>
-            <p style={{ fontSize: '1.5rem', fontWeight: 'bold', fontFamily: 'monospace', color: 'var(--accent-gold)', letterSpacing: '2px' }}>
-              {orderSuccess.id.substring(0, 8)}
-            </p>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '1rem', marginBottom: '1.5rem' }}>
-              Please save this Order ID. You can use it to track your order status from the Track Order page.
-            </p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Order ID</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <p style={{ fontSize: '1.1rem', fontWeight: 'bold', fontFamily: 'monospace', color: 'var(--accent-gold)' }}>
+                  {orderSuccess.id.substring(0, 8)}
+                </p>
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(orderSuccess.id.substring(0, 8));
+                    toast.success('Order ID copied!');
+                  }}
+                  style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}
+                  title="Copy Order ID"
+                >
+                  <Copy size={16} />
+                </button>
+              </div>
+            </div>
             
             <div style={{ textAlign: 'left', borderTop: '1px solid var(--border-subtle)', paddingTop: '1.5rem' }}>
               <h4 style={{ marginBottom: '1rem', color: 'var(--text-primary)' }}>Order Summary</h4>
@@ -126,7 +137,7 @@ export default function Checkout() {
               </div>
             </div>
           </div>
-          <Link to="/track-order" className="btn btn-primary" style={{ width: '100%', marginBottom: '1rem' }}>
+          <Link to="/my-archive?tab=orders" className="btn btn-primary" style={{ width: '100%', marginBottom: '1rem' }}>
             Track Your Order
           </Link>
           <Link to="/shop" className="btn btn-secondary" style={{ width: '100%' }}>
