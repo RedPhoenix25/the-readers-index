@@ -425,6 +425,71 @@ export default function Admin() {
     });
   };
 
+  const handleArchiveAndCleanOrders = () => {
+    confirmAction('This will download all Delivered and Cancelled orders to a CSV file and then permanently delete them. Continue?', async () => {
+      try {
+        const completedOrders = orders.filter(o => o.status === 'Delivered');
+        const cancelledOrders = orders.filter(o => o.status === 'Cancelled');
+        
+        if (completedOrders.length === 0 && cancelledOrders.length === 0) {
+          toast.error('No delivered or cancelled orders to archive.');
+          return;
+        }
+
+        const headers = ['Order ID', 'Date', 'Customer Name', 'Customer Email', 'Total Amount', 'Status', 'Tracking Number'];
+        let csvRows = [];
+        
+        // Delivered Section
+        csvRows.push(['--- DELIVERED ORDERS ---']);
+        csvRows.push(headers);
+        completedOrders.forEach(o => {
+          csvRows.push([
+            o._id,
+            new Date(o.createdAt).toLocaleDateString(),
+            o.customerName,
+            o.customerEmail,
+            o.totalAmount,
+            o.status,
+            o.trackingNumber || ''
+          ]);
+        });
+        
+        csvRows.push([]); // Empty row
+        csvRows.push([]); // Empty row
+        
+        // Cancelled Section
+        csvRows.push(['--- CANCELLED ORDERS ---']);
+        csvRows.push(headers);
+        cancelledOrders.forEach(o => {
+          csvRows.push([
+            o._id,
+            new Date(o.createdAt).toLocaleDateString(),
+            o.customerName,
+            o.customerEmail,
+            o.totalAmount,
+            o.status,
+            o.trackingNumber || ''
+          ]);
+        });
+        
+        const csvContent = csvRows.map(r => r.join(',')).join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `archived_orders_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        
+        // Optimistic UI update to remove deleted orders instantly without a full reload
+        const data = await deleteDeliveredOrders();
+        setOrders(prev => prev.filter(o => o.status !== 'Delivered' && o.status !== 'Cancelled'));
+        toast.success(`Archived and deleted ${data.count || 0} completed/cancelled orders`);
+      } catch (err) {
+        toast.error('Failed to archive and clean orders');
+      }
+    });
+  };
+
   const handleUpdateOrderTracking = async (e) => {
     e.preventDefault();
     if (!selectedOrder) return;
@@ -1266,6 +1331,9 @@ export default function Admin() {
                     <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                       <button className="btn btn-secondary" onClick={handleDownloadOrdersCSV}>
                         <Download size={18} /> Export CSV
+                      </button>
+                      <button className="btn btn-primary" style={{ background: 'var(--accent-gold)', borderColor: 'var(--accent-gold)' }} onClick={handleArchiveAndCleanOrders}>
+                        <Download size={18} /> Archive & Clean
                       </button>
                       <button className="btn btn-outline" style={{ borderColor: 'var(--accent-rose)', color: 'var(--accent-rose)' }} onClick={handleDeleteDeliveredOrders}>
                         <Trash2 size={18} /> Clean Delivered
