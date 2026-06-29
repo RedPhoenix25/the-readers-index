@@ -102,26 +102,7 @@ export default function Checkout() {
             Your mock order has been placed successfully and is now pending.
           </p>
           <div style={{ background: 'var(--bg-primary)', padding: '1.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', marginBottom: '2rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Order ID</p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <p style={{ fontSize: '1.1rem', fontWeight: 'bold', fontFamily: 'monospace', color: 'var(--accent-gold)' }}>
-                  {orderSuccess.id.substring(0, 8)}
-                </p>
-                <button 
-                  onClick={() => {
-                    navigator.clipboard.writeText(orderSuccess.id.substring(0, 8));
-                    toast.success('Order ID copied!');
-                  }}
-                  style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}
-                  title="Copy Order ID"
-                >
-                  <Copy size={16} />
-                </button>
-              </div>
-            </div>
-            
-            <div style={{ textAlign: 'left', borderTop: '1px solid var(--border-subtle)', paddingTop: '1.5rem' }}>
+            <div style={{ textAlign: 'left' }}>
               <h4 style={{ marginBottom: '1rem', color: 'var(--text-primary)' }}>Order Summary</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
                 {orderSuccess.items.map((item, idx) => (

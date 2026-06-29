@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { BookOpen, Trash2, Heart, Clock, CheckCircle2, Bookmark, Camera, User, Settings, ChevronLeft, ChevronRight, Package, MapPin, Truck, Search } from 'lucide-react';
+import { BookOpen, Trash2, Heart, Clock, CheckCircle2, Bookmark, Camera, User, Settings, ChevronLeft, ChevronRight, Package, MapPin, Truck, Search, Copy } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import BookCard from '../../components/BookCard/BookCard';
 import BookModal from '../../components/BookModal/BookModal';
@@ -338,7 +338,20 @@ export default function MyShelf() {
                       <div key={order._id} className="order-card glass-card">
                         <div className="order-card-header" onClick={() => setExpandedOrder(expandedOrder === order._id ? null : order._id)} style={{ cursor: 'pointer' }}>
                           <div>
-                            <h4>Order <span style={{ fontFamily: 'monospace', color: 'var(--accent-gold)' }}>#{order._id.substring(0, 8)}</span></h4>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <h4>Order <span style={{ fontFamily: 'monospace', color: 'var(--accent-gold)' }}>#{order._id.substring(0, 8)}</span></h4>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigator.clipboard.writeText(order._id);
+                                  toast.success('Order ID copied!');
+                                }}
+                                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}
+                                title="Copy Full Order ID"
+                              >
+                                <Copy size={14} />
+                              </button>
+                            </div>
                             <p className="order-date">{new Date(order.createdAt).toLocaleDateString()}</p>
                           </div>
                           <div className="order-status-group">
@@ -429,7 +442,20 @@ export default function MyShelf() {
                       <div key={order._id} className="order-card compact glass-card">
                         <div className="order-card-header">
                           <div>
-                            <h4>Order <span style={{ fontFamily: 'monospace', color: 'var(--accent-gold)' }}>#{order._id.substring(0, 8)}</span></h4>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <h4>Order <span style={{ fontFamily: 'monospace', color: 'var(--accent-gold)' }}>#{order._id.substring(0, 8)}</span></h4>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigator.clipboard.writeText(order._id);
+                                  toast.success('Order ID copied!');
+                                }}
+                                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}
+                                title="Copy Full Order ID"
+                              >
+                                <Copy size={14} />
+                              </button>
+                            </div>
                             <p className="order-date">{new Date(order.createdAt).toLocaleDateString()}</p>
                           </div>
                           <div className="order-status-group">
