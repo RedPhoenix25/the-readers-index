@@ -23,7 +23,8 @@ import {
   Download,
   ShoppingCart,
   Package,
-  TrendingUp
+  TrendingUp,
+  Megaphone
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { 
@@ -51,10 +52,13 @@ import {
   deleteProduct,
   fetchOrders,
   updateOrder,
-  deleteDeliveredOrders
+  deleteDeliveredOrders,
+  sendNewsletter
 } from '../../services/api';
 import './Admin.css';
 import AnalyticsDashboard from './AnalyticsDashboard';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 export default function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -128,6 +132,14 @@ export default function Admin() {
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderTrackingForm, setOrderTrackingForm] = useState({ trackingNumber: '', trackingUrl: '' });
+
+  // Newsletter State
+  const [newsletterForm, setNewsletterForm] = useState({
+    audience: 'All Subscribers',
+    subject: '',
+    message: ''
+  });
+  const [isSendingNewsletter, setIsSendingNewsletter] = useState(false);
 
   const confirmAction = (message, action) => {
     toast((t) => (
@@ -552,6 +564,24 @@ export default function Admin() {
     }
   };
 
+  const handleSendNewsletter = async (e) => {
+    e.preventDefault();
+    if (!newsletterForm.subject || !newsletterForm.message) {
+      toast.error('Subject and message are required');
+      return;
+    }
+    setIsSendingNewsletter(true);
+    try {
+      const res = await sendNewsletter(newsletterForm);
+      toast.success(res.message || 'Newsletter sent successfully');
+      setNewsletterForm({ ...newsletterForm, subject: '', message: '' });
+    } catch (err) {
+      toast.error(err.message || 'Failed to send newsletter');
+    } finally {
+      setIsSendingNewsletter(false);
+    }
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="admin-login-wrapper">
@@ -642,6 +672,12 @@ export default function Admin() {
                 onClick={() => setActiveTab('orders')}
               >
                 <Package size={18} /> Orders
+              </button>
+              <button 
+                className={`admin-nav-item ${activeTab === 'newsletter' ? 'active' : ''}`}
+                onClick={() => setActiveTab('newsletter')}
+              >
+                <Megaphone size={18} /> Campaigns
               </button>
               <button className="admin-nav-item logout" onClick={() => setIsAuthenticated(false)}>
                 <LogOut size={18} /> Logout
@@ -887,6 +923,75 @@ export default function Admin() {
                     </table>
                   </div>
                 </div>
+              </section>
+            )}
+
+            {activeTab === 'newsletter' && (
+              <section className="admin-section animate-fade-in">
+                <div className="admin-header">
+                  <div>
+                    <h2>Campaigns & Newsletters</h2>
+                    <p>Send updates and announcements directly to your audience.</p>
+                  </div>
+                </div>
+
+                <form className="admin-form glass-card" onSubmit={handleSendNewsletter}>
+                  <div className="form-grid">
+                    <div className="form-group full">
+                      <label>Target Audience</label>
+                      <select 
+                        value={newsletterForm.audience} 
+                        onChange={e => setNewsletterForm({...newsletterForm, audience: e.target.value})}
+                      >
+                        <option value="All Subscribers">All Subscribers (Waitlist & Newsletter)</option>
+                        <option value="Waitlist Only">Waitlist Only</option>
+                        <option value="Newsletter Only">Newsletter Only</option>
+                      </select>
+                    </div>
+                    
+                    <div className="form-group full">
+                      <label>Subject</label>
+                      <input 
+                        type="text" 
+                        placeholder="e.g. Exciting News from The Readers Index!"
+                        value={newsletterForm.subject}
+                        onChange={e => setNewsletterForm({...newsletterForm, subject: e.target.value})}
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group full">
+                      <label>Message Content</label>
+                      <div className="quill-container" style={{ background: 'var(--bg-primary)', borderRadius: 'var(--radius-md)', color: 'var(--text-primary)' }}>
+                        <ReactQuill 
+                          theme="snow" 
+                          value={newsletterForm.message} 
+                          onChange={(content) => setNewsletterForm({...newsletterForm, message: content})}
+                          style={{ minHeight: '300px' }}
+                          modules={{
+                            toolbar: [
+                              [{ 'header': [1, 2, 3, false] }],
+                              ['bold', 'italic', 'underline', 'strike'],
+                              [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                              ['link', 'image'],
+                              ['clean']
+                            ]
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="form-actions" style={{ marginTop: '2rem' }}>
+                    <button type="submit" className="btn btn-primary" disabled={isSendingNewsletter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      {isSendingNewsletter ? (
+                        <><Loader size={18} className="spin" /> Sending Campaign...</>
+                      ) : (
+                        <><Megaphone size={18} /> Send Campaign</>
+                      )}
+                    </button>
+                  </div>
+                </form>
               </section>
             )}
 

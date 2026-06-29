@@ -709,6 +709,51 @@ app.delete('/api/users/avatar', authenticateToken, async (req, res) => {
   }
 });
 
+// --- NEWSLETTER ---
+app.post('/api/newsletter/send', authenticateToken, async (req, res) => {
+  try {
+    const { audience, subject, message } = req.body;
+    
+    if (!subject || !message) {
+      return res.status(400).json({ error: 'Subject and message are required' });
+    }
+
+    let query = {};
+    if (audience === 'Waitlist Only') {
+      query.source = { $regex: /waitlist/i };
+    } else if (audience === 'Newsletter Only') {
+      // Find where source is missing, null, or doesn't contain waitlist
+      query.$or = [
+        { source: { $exists: false } },
+        { source: null },
+        { source: { $not: { $regex: /waitlist/i } } }
+      ];
+    }
+    
+    const subscribers = await Subscriber.find(query);
+    const emails = subscribers.map(sub => sub.email).filter(Boolean);
+
+    if (emails.length === 0) {
+      return res.status(404).json({ error: 'No subscribers found for this audience' });
+    }
+
+    const mailOptions = {
+      from: `"The Readers Index" <${process.env.EMAIL_USER || 'thereadersindex@gmail.com'}>`,
+      to: process.env.EMAIL_USER || 'thereadersindex@gmail.com',
+      bcc: emails,
+      subject: subject,
+      html: message
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.json({ message: `Newsletter sent successfully to ${emails.length} subscriber(s)` });
+  } catch (err) {
+    console.error('Newsletter send error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ==========================================
 // E-COMMERCE / SHOP ROUTES
 // ==========================================

@@ -451,3 +451,20 @@ export async function trackOrder(orderId, email) {
   }
   return res.json();
 }
+
+export async function sendNewsletter(payload) {
+  const token = localStorage.getItem('adminToken');
+  const res = await fetch(`${API_BASE}/newsletter/send`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}` 
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Failed to send newsletter');
+  }
+  return res.json();
+}
