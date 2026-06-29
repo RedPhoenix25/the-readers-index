@@ -43,4 +43,7 @@
   
   /* Feature cards, mission cards background */
   --mission-bg-gradient: radial-gradient(ellipse at 50% 0%, rgba(161, 122, 32, 0.04), transparent 60%);
+
+  /* Hero section specifics */
+  --hero-bg-opacity: 0.3;
 }
