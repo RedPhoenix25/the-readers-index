@@ -108,7 +108,7 @@ export default function Shop() {
                         }}
                         title={product.stock > 0 ? "Add to Cart" : "Out of Stock"}
                       >
-                        <Plus size={18} />
+                        <Plus size={18} style={{ pointerEvents: 'none' }} />
                       </button>
                     </div>
                   </div>
