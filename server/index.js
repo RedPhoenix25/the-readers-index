@@ -710,7 +710,7 @@ app.delete('/api/users/avatar', authenticateToken, async (req, res) => {
 });
 
 // --- NEWSLETTER ---
-app.post('/api/newsletter/send', authenticateToken, async (req, res) => {
+app.post('/api/newsletter/send', async (req, res) => {
   try {
     const { audience, subject, message } = req.body;
     
