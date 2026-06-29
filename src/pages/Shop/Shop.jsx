@@ -103,6 +103,7 @@ export default function Shop() {
                         disabled={product.stock <= 0}
                         onClick={(e) => {
                           e.preventDefault();
+                          e.stopPropagation();
                           addToCart(product);
                         }}
                         title={product.stock > 0 ? "Add to Cart" : "Out of Stock"}
