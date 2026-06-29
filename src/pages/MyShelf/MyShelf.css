@@ -568,3 +568,36 @@
   }
 }
 
+
+/* Mobile UI Fixes */
+@media (max-width: 768px) {
+  .myshelf-header {
+    padding-top: calc(var(--space-4xl) + 40px);
+  }
+}
+
+@media (max-width: 380px) {
+  .order-card {
+    padding: 1rem;
+  }
+  
+  .order-card.compact {
+    padding: 1rem;
+  }
+  
+  .order-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .order-status-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .order-card-header h4 {
+    font-size: 1rem;
+  }
+}
+
