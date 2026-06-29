@@ -24,7 +24,8 @@ import {
   ShoppingCart,
   Package,
   TrendingUp,
-  Megaphone
+  Megaphone,
+  Maximize2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { 
@@ -137,9 +138,12 @@ export default function Admin() {
   const [newsletterForm, setNewsletterForm] = useState({
     audience: 'All Subscribers',
     subject: '',
-    message: ''
+    message: '',
+    customEmails: '',
+    testEmail: ''
   });
   const [isSendingNewsletter, setIsSendingNewsletter] = useState(false);
+  const [isPreviewExpanded, setIsPreviewExpanded] = useState(false);
 
   const confirmAction = (message, action) => {
     toast((t) => (
@@ -564,17 +568,26 @@ export default function Admin() {
     }
   };
 
-  const handleSendNewsletter = async (e) => {
-    e.preventDefault();
-    if (!newsletterForm.subject || !newsletterForm.message) {
+  const handleSendNewsletter = async (e, isTest = false) => {
+    if (e) e.preventDefault();
+    
+    if (isTest && !newsletterForm.testEmail) {
+      toast.error('Test email address is required');
+      return;
+    }
+    if (!isTest && (!newsletterForm.subject || !newsletterForm.message)) {
       toast.error('Subject and message are required');
       return;
     }
+    
     setIsSendingNewsletter(true);
     try {
-      const res = await sendNewsletter(newsletterForm);
+      const payload = { ...newsletterForm, isTest };
+      const res = await sendNewsletter(payload);
       toast.success(res.message || 'Newsletter sent successfully');
-      setNewsletterForm({ ...newsletterForm, subject: '', message: '' });
+      if (!isTest) {
+        setNewsletterForm({ ...newsletterForm, subject: '', message: '', customEmails: '', testEmail: '' });
+      }
     } catch (err) {
       toast.error(err.message || 'Failed to send newsletter');
     } finally {
@@ -930,39 +943,72 @@ export default function Admin() {
               <section className="admin-section animate-fade-in">
                 <div className="admin-header">
                   <div>
-                    <h2>Campaigns & Newsletters</h2>
-                    <p>Send updates and announcements directly to your audience.</p>
+                    <h2>Broadcast Mail</h2>
+                    <p>Send customized emails to your users.</p>
                   </div>
                 </div>
 
-                <form className="admin-form glass-card" onSubmit={handleSendNewsletter}>
-                  <div className="form-grid">
-                    <div className="form-group full">
-                      <label>Target Audience</label>
-                      <select 
-                        value={newsletterForm.audience} 
-                        onChange={e => setNewsletterForm({...newsletterForm, audience: e.target.value})}
-                      >
-                        <option value="All Subscribers">All Subscribers (Waitlist & Newsletter)</option>
-                        <option value="Waitlist Only">Waitlist Only</option>
-                        <option value="Newsletter Only">Newsletter Only</option>
-                      </select>
-                    </div>
-                    
-                    <div className="form-group full">
-                      <label>Subject</label>
-                      <input 
-                        type="text" 
-                        placeholder="e.g. Exciting News from The Readers Index!"
-                        value={newsletterForm.subject}
-                        onChange={e => setNewsletterForm({...newsletterForm, subject: e.target.value})}
-                        required
-                      />
+                <div className="broadcast-layout">
+                  <div className="broadcast-main">
+                    {/* 1 - CHOOSE AUDIENCE */}
+                    <div className="broadcast-section">
+                      <h3>1 — CHOOSE AUDIENCE</h3>
+                      <div className="audience-pills">
+                        <button 
+                          className={`pill-btn ${newsletterForm.audience === 'All Subscribers' ? 'active' : ''}`}
+                          onClick={() => setNewsletterForm({...newsletterForm, audience: 'All Subscribers'})}
+                        >All Subscribers</button>
+                        <button 
+                          className={`pill-btn ${newsletterForm.audience === 'Waitlist Only' ? 'active' : ''}`}
+                          onClick={() => setNewsletterForm({...newsletterForm, audience: 'Waitlist Only'})}
+                        >Waitlist Only</button>
+                        <button 
+                          className={`pill-btn ${newsletterForm.audience === 'Newsletter Only' ? 'active' : ''}`}
+                          onClick={() => setNewsletterForm({...newsletterForm, audience: 'Newsletter Only'})}
+                        >Newsletter Only</button>
+                        <button 
+                          className={`pill-btn ${newsletterForm.audience === 'Custom List' ? 'active custom-list' : ''}`}
+                          onClick={() => setNewsletterForm({...newsletterForm, audience: 'Custom List'})}
+                        >Custom List</button>
+                      </div>
+                      
+                      {newsletterForm.audience === 'Custom List' && (
+                        <div style={{ marginTop: '1rem' }}>
+                          <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                            EMAIL ADDRESSES (one per line or comma separated)
+                          </label>
+                          <textarea 
+                            className="broadcast-textarea"
+                            placeholder="john@email.com, jane@email.com"
+                            value={newsletterForm.customEmails}
+                            onChange={(e) => setNewsletterForm({...newsletterForm, customEmails: e.target.value})}
+                          />
+                        </div>
+                      )}
                     </div>
 
-                    <div className="form-group full">
-                      <label>Message Content</label>
-                      <div className="quill-container" style={{ background: 'var(--bg-primary)', borderRadius: 'var(--radius-md)', color: 'var(--text-primary)' }}>
+                    {/* 2 - SUBJECT */}
+                    <div className="broadcast-section">
+                      <h3>2 — SUBJECT</h3>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                          EMAIL SUBJECT *
+                        </label>
+                        <input 
+                          type="text"
+                          className="broadcast-input"
+                          placeholder="e.g. Exciting News from The Readers Index!"
+                          value={newsletterForm.subject}
+                          onChange={(e) => setNewsletterForm({...newsletterForm, subject: e.target.value})}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* 3 - COMPOSE EMAIL */}
+                    <div className="broadcast-section">
+                      <h3>3 — COMPOSE EMAIL</h3>
+                      <div className="quill-container" style={{ background: 'var(--bg-primary)', borderRadius: 'var(--radius-md)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}>
                         <ReactQuill 
                           theme="snow" 
                           value={newsletterForm.message} 
@@ -980,19 +1026,120 @@ export default function Admin() {
                         />
                       </div>
                     </div>
+
+                    {/* 4 - SEND */}
+                    <div className="broadcast-section">
+                      <h3>4 — SEND</h3>
+                      <div style={{ background: 'rgba(255, 107, 0, 0.1)', border: '1px solid rgba(255, 107, 0, 0.2)', padding: '1rem', borderRadius: '8px', color: '#FF8C00', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', fontSize: '0.9rem' }}>
+                        <AlertCircle size={16} /> Emails sent in batches. Large lists may take several minutes.
+                      </div>
+                      
+                      <div style={{ marginBottom: '1.5rem' }}>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                          SEND TEST EMAIL FIRST
+                        </label>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <input 
+                            type="email"
+                            className="broadcast-input"
+                            placeholder="your@email.com"
+                            value={newsletterForm.testEmail}
+                            onChange={(e) => setNewsletterForm({...newsletterForm, testEmail: e.target.value})}
+                          />
+                          <button 
+                            type="button"
+                            className="btn btn-secondary" 
+                            style={{ whiteSpace: 'nowrap' }}
+                            onClick={() => handleSendNewsletter(null, true)}
+                            disabled={isSendingNewsletter}
+                          >
+                            Send Test
+                          </button>
+                        </div>
+                      </div>
+
+                      <button 
+                        type="button" 
+                        className="send-broadcast-btn"
+                        onClick={(e) => handleSendNewsletter(e, false)}
+                        disabled={isSendingNewsletter}
+                      >
+                        {isSendingNewsletter ? (
+                          <><Loader size={18} className="spin" /> Sending...</>
+                        ) : (
+                          <><Megaphone size={18} /> Send Broadcast</>
+                        )}
+                      </button>
+                    </div>
                   </div>
-                  
-                  <div className="form-actions" style={{ marginTop: '2rem' }}>
-                    <button type="submit" className="btn btn-primary" disabled={isSendingNewsletter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      {isSendingNewsletter ? (
-                        <><Loader size={18} className="spin" /> Sending Campaign...</>
-                      ) : (
-                        <><Megaphone size={18} /> Send Campaign</>
-                      )}
-                    </button>
+
+                  {/* RIGHT SIDEBAR */}
+                  <div className="broadcast-sidebar">
+                    <div className="broadcast-section" style={{ padding: 0, overflow: 'hidden' }}>
+                      <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h3 style={{ margin: 0, fontSize: '0.9rem' }}>LIVE PREVIEW</h3>
+                        <button className="btn-icon" onClick={() => setIsPreviewExpanded(true)} title="Expand Preview">
+                          <Maximize2 size={14} />
+                        </button>
+                      </div>
+                      <div style={{ padding: '1rem', background: 'var(--bg-secondary)' }}>
+                        <div className="live-preview-window">
+                          <div className="live-preview-header">
+                            <div className="preview-dot red"></div>
+                            <div className="preview-dot yellow"></div>
+                            <div className="preview-dot green"></div>
+                          </div>
+                          <div className="live-preview-content" dangerouslySetInnerHTML={{ __html: \`
+                            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1a1a2e; color: #d4cfc7; padding: 2rem; border-radius: 8px;">
+                              <div style="text-align: center; margin-bottom: 2rem;">
+                                <h1 style="color: #C9A84C; font-size: 1.5rem; margin: 0; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;">The Reader's Index</h1>
+                                <hr style="border: none; border-top: 1px solid rgba(201,168,76,0.15); margin-top: 1.5rem;" />
+                              </div>
+                              <div style="line-height: 1.6; font-size: 0.95rem;">
+                                \${newsletterForm.message || '<p style="color: rgba(255,255,255,0.2);">Start typing to preview...</p>'}
+                              </div>
+                            </div>
+                          \`}} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="broadcast-section">
+                      <h3>RECENT BROADCASTS</h3>
+                      <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>No broadcasts yet.</p>
+                    </div>
                   </div>
-                </form>
+                </div>
               </section>
+            )}
+
+            {/* EXPANDED PREVIEW MODAL */}
+            {isPreviewExpanded && (
+              <div className="preview-modal-overlay" onClick={() => setIsPreviewExpanded(false)}>
+                <div className="preview-modal-content" onClick={e => e.stopPropagation()}>
+                  <button className="close-preview-btn" onClick={() => setIsPreviewExpanded(false)}>
+                    <X size={20} /> Close Preview
+                  </button>
+                  <div className="live-preview-window">
+                    <div className="live-preview-header">
+                      <div className="preview-dot red"></div>
+                      <div className="preview-dot yellow"></div>
+                      <div className="preview-dot green"></div>
+                    </div>
+                    <div className="live-preview-content" dangerouslySetInnerHTML={{ __html: \`
+                      <div style="max-width: 600px; margin: 0 auto; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1a1a2e; color: #d4cfc7; padding: 2.5rem; border-radius: 12px; border: 1px solid rgba(201,168,76,0.2);">
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                          <h1 style="color: #C9A84C; font-size: 1.8rem; margin: 0; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;">The Reader's Index</h1>
+                          <hr style="border: none; border-top: 1px solid rgba(201,168,76,0.15); margin-top: 1.5rem;" />
+                        </div>
+                        <div style="line-height: 1.7; font-size: 1.05rem; color: #d4cfc7;">
+                          \${newsletterForm.message || '<p style="color: rgba(255,255,255,0.2);">Start typing to preview...</p>'}
+                        </div>
+                      </div>
+                    \`}} />
+                  </div>
+                </div>
+              </div>
             )}
 
             {activeTab === 'subscribers' && (

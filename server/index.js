@@ -738,26 +738,35 @@ app.delete('/api/users/avatar', authenticateToken, async (req, res) => {
 // --- NEWSLETTER ---
 app.post('/api/newsletter/send', async (req, res) => {
   try {
-    const { audience, subject, message } = req.body;
+    const { audience, subject, message, isTest, testEmail, customEmails } = req.body;
     
     if (!subject || !message) {
       return res.status(400).json({ error: 'Subject and message are required' });
     }
 
-    let query = {};
-    if (audience === 'Waitlist Only') {
-      query.source = { $regex: /waitlist/i };
-    } else if (audience === 'Newsletter Only') {
-      // Find where source is missing, null, or doesn't contain waitlist
-      query.$or = [
-        { source: { $exists: false } },
-        { source: null },
-        { source: { $not: { $regex: /waitlist/i } } }
-      ];
+    let emails = [];
+    if (isTest) {
+      if (!testEmail) return res.status(400).json({ error: 'Test email is required' });
+      emails = [testEmail];
+    } else if (audience === 'Custom List') {
+      if (!customEmails) return res.status(400).json({ error: 'Custom emails are required' });
+      emails = customEmails.split(/[\n,]+/).map(e => e.trim()).filter(Boolean);
+    } else {
+      let query = {};
+      if (audience === 'Waitlist Only') {
+        query.source = { $regex: /waitlist/i };
+      } else if (audience === 'Newsletter Only') {
+        // Find where source is missing, null, or doesn't contain waitlist
+        query.$or = [
+          { source: { $exists: false } },
+          { source: null },
+          { source: { $not: { $regex: /waitlist/i } } }
+        ];
+      }
+      
+      const subscribers = await Subscriber.find(query);
+      emails = subscribers.map(sub => sub.email).filter(Boolean);
     }
-    
-    const subscribers = await Subscriber.find(query);
-    const emails = subscribers.map(sub => sub.email).filter(Boolean);
 
     if (emails.length === 0) {
       return res.status(404).json({ error: 'No subscribers found for this audience' });
