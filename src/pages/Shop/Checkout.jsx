@@ -3,12 +3,14 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { Check, ArrowLeft, Loader } from 'lucide-react';
 import { createOrder } from '../../services/api';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 import './Shop.css';
 import toast from 'react-hot-toast';
 
 export default function Checkout() {
   const navigate = useNavigate();
   const { cartItems, getCartTotal, clearCart } = useCart();
+  const { token } = useAuth();
 
   const [formData, setFormData] = useState({
     email: '',
@@ -63,7 +65,7 @@ export default function Checkout() {
     };
 
     try {
-      const newOrder = await createOrder(orderData);
+      const newOrder = await createOrder(orderData, token);
       setOrderSuccess({
         id: newOrder._id,
         items: [...cartItems],

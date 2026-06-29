@@ -16,7 +16,6 @@ import Settings from './pages/Settings/Settings';
 import ResetPassword from './pages/ResetPassword/ResetPassword';
 import Shop from './pages/Shop/Shop';
 import Checkout from './pages/Shop/Checkout';
-import TrackOrder from './pages/TrackOrder/TrackOrder';
 import CartDrawer from './components/CartDrawer/CartDrawer';
 import { Toaster } from 'react-hot-toast';
 
@@ -143,7 +142,6 @@ export default function App() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/shop" element={<Shop />} />
           <Route path="/shop/checkout" element={<Checkout />} />
-          <Route path="/track-order" element={<TrackOrder />} />
         </Routes>
       </main>
       <CartDrawer />

@@ -924,11 +924,23 @@ app.delete('/api/orders/delivered', async (req, res) => {
   }
 });
 
-app.post('/api/orders', async (req, res) => {
+app.post('/api/orders', authenticateToken, async (req, res) => {
   try {
-    const order = new Order(req.body);
+    const orderData = { ...req.body, user: req.user.id };
+    const order = new Order(orderData);
     await order.save();
     res.status(201).json(order);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/user/orders', authenticateToken, async (req, res) => {
+  try {
+    const orders = await Order.find({ user: req.user.id })
+      .sort({ createdAt: -1 })
+      .populate('products.product');
+    res.json(orders);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

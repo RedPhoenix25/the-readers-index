@@ -1,10 +1,12 @@
 import React from 'react';
 import { X, Minus, Plus, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './CartDrawer.css';
 
 export default function CartDrawer() {
+  const { user } = useAuth();
   const { 
     cartItems, 
     isCartOpen, 
@@ -15,6 +17,7 @@ export default function CartDrawer() {
   } = useCart();
   
   const navigate = useNavigate();
+  const location = useLocation();
 
   if (!isCartOpen) return null;
 
@@ -29,7 +32,11 @@ export default function CartDrawer() {
 
   const handleCheckout = () => {
     setIsCartOpen(false);
-    navigate('/shop/checkout');
+    if (!user) {
+      navigate('/login?redirect=/shop/checkout');
+    } else {
+      navigate('/shop/checkout');
+    }
   };
 
   return (

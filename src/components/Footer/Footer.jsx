@@ -49,7 +49,6 @@ export default function Footer() {
               <Link to="/bookshelf" className="footer__nav-link">The Bookshelf</Link>
               <Link to="/recommendations" className="footer__nav-link">Recommendations</Link>
               <Link to="/shop" className="footer__nav-link">Shop</Link>
-              <Link to="/track-order" className="footer__nav-link">Track Order</Link>
               <Link to="/library-vision" className="footer__nav-link">The Library Vision</Link>
             </div>
 

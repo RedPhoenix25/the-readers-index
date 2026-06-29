@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, Trash2, Heart, Clock, CheckCircle2, Bookmark, Camera, User, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
+import { BookOpen, Trash2, Heart, Clock, CheckCircle2, Bookmark, Camera, User, Settings, ChevronLeft, ChevronRight, Package, MapPin, Truck, Search } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import BookCard from '../../components/BookCard/BookCard';
 import BookModal from '../../components/BookModal/BookModal';
 import { uploadAvatar, API_BASE } from '../../services/api';
+import { fetchUserOrders } from '../../services/api';
 import toast from 'react-hot-toast';
 import './MyShelf.css';
 
@@ -101,10 +102,14 @@ function ShelfSection({ section, allBooks, onSelectBook, onMarkRead, onRemove })
 
 export default function MyShelf() {
   const { user, token, loading: authLoading, updateUser, refreshUserBooks } = useAuth();
+  const [activeTab, setActiveTab] = useState('library');
   const [books, setBooks] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedBook, setSelectedBook] = useState(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [visiblePastOrders, setVisiblePastOrders] = useState(5);
+  const [expandedOrder, setExpandedOrder] = useState(null);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
@@ -114,26 +119,28 @@ export default function MyShelf() {
     }
   }, [user, authLoading, navigate]);
 
-  const loadUserBooks = async () => {
+  const loadUserData = async () => {
     if (!token) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/user/books`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setBooks(data);
+      const [booksRes, ordersRes] = await Promise.all([
+        fetch(`${API_BASE}/user/books`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetchUserOrders(token)
+      ]);
+      if (booksRes.ok) {
+        const booksData = await booksRes.json();
+        setBooks(booksData);
       }
+      setOrders(ordersRes || []);
     } catch (err) {
-      console.error('Failed to load bookshelf');
+      console.error('Failed to load user data');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadUserBooks();
+    loadUserData();
   }, [token]);
 
   const handleRemoveBook = async (e, bookId) => {
@@ -195,7 +202,7 @@ export default function MyShelf() {
     }
   };
 
-  if (authLoading || (loading && books.length === 0)) {
+  if (authLoading || (loading && books.length === 0 && orders.length === 0)) {
     return <div className="loading-state">Tending to your shelves...</div>;
   }
 
@@ -203,6 +210,20 @@ export default function MyShelf() {
     { title: 'Want to Read', status: 'Want to Read', icon: <Bookmark size={20} /> },
     { title: 'Completed', status: 'Read', icon: <CheckCircle2 size={20} /> },
   ];
+
+  const activeOrders = orders.filter(o => ['Pending', 'Processing', 'Shipped'].includes(o.status));
+  const pastOrders = orders.filter(o => ['Delivered', 'Cancelled'].includes(o.status));
+
+  const getStatusStep = (status) => {
+    switch (status) {
+      case 'Pending': return 1;
+      case 'Processing': return 2;
+      case 'Shipped': return 3;
+      case 'Delivered': return 4;
+      case 'Cancelled': return 0;
+      default: return 1;
+    }
+  };
 
   return (
     <div className="page-wrapper myshelf-page">
@@ -246,32 +267,180 @@ export default function MyShelf() {
               </button>
             </div>
           </div>
+
+          <div className="myshelf-tabs">
+            <button 
+              className={`myshelf-tab ${activeTab === 'library' ? 'active' : ''}`}
+              onClick={() => setActiveTab('library')}
+            >
+              <Bookmark size={18} /> My Library
+            </button>
+            <button 
+              className={`myshelf-tab ${activeTab === 'orders' ? 'active' : ''}`}
+              onClick={() => setActiveTab('orders')}
+            >
+              <Package size={18} /> My Orders
+            </button>
+          </div>
         </div>
       </header>
 
       <section className="section">
         <div className="container">
-          {books.length === 0 ? (
-            <div className="empty-shelf glass-card animate-fade-in">
-              <BookOpen size={48} />
-              <h3>Your shelves are empty</h3>
-              <p>Start exploring the library and add books to your archive.</p>
-              <button className="btn btn-primary" onClick={() => navigate('/bookshelf')}>
-                Explore The Bookshelf
-              </button>
-            </div>
-          ) : (
-            <div className="myshelf-content">
-              {sections.map(section => (
-                <ShelfSection 
-                  key={section.status}
-                  section={section}
-                  allBooks={books}
-                  onSelectBook={setSelectedBook}
-                  onMarkRead={handleMarkAsRead}
-                  onRemove={handleRemoveBook}
-                />
-              ))}
+          {activeTab === 'library' && (
+            books.length === 0 ? (
+              <div className="empty-shelf glass-card animate-fade-in">
+                <BookOpen size={48} />
+                <h3>Your shelves are empty</h3>
+                <p>Start exploring the library and add books to your archive.</p>
+                <button className="btn btn-primary" onClick={() => navigate('/bookshelf')}>
+                  Explore The Bookshelf
+                </button>
+              </div>
+            ) : (
+              <div className="myshelf-content">
+                {sections.map(section => (
+                  <ShelfSection 
+                    key={section.status}
+                    section={section}
+                    allBooks={books}
+                    onSelectBook={setSelectedBook}
+                    onMarkRead={handleMarkAsRead}
+                    onRemove={handleRemoveBook}
+                  />
+                ))}
+              </div>
+            )
+          )}
+
+          {activeTab === 'orders' && (
+            <div className="orders-tab animate-fade-in">
+              <div className="orders-section active-orders">
+                <h3 className="orders-section-title">Active Orders</h3>
+                {activeOrders.length === 0 ? (
+                  <div className="empty-orders glass-card">
+                    <Package size={32} />
+                    <p>You have no active orders.</p>
+                    <button className="btn btn-outline" onClick={() => navigate('/shop')}>Shop Now</button>
+                  </div>
+                ) : (
+                  <div className="orders-list">
+                    {activeOrders.map(order => (
+                      <div key={order._id} className="order-card glass-card">
+                        <div className="order-card-header" onClick={() => setExpandedOrder(expandedOrder === order._id ? null : order._id)} style={{ cursor: 'pointer' }}>
+                          <div>
+                            <h4>Order <span style={{ fontFamily: 'monospace', color: 'var(--accent-gold)' }}>#{order._id.substring(0, 8)}</span></h4>
+                            <p className="order-date">{new Date(order.createdAt).toLocaleDateString()}</p>
+                          </div>
+                          <div className="order-status-group">
+                            <span className={`badge status-badge status-${order.status.toLowerCase()}`}>{order.status}</span>
+                            {expandedOrder === order._id ? <ChevronLeft size={16} style={{ transform: 'rotate(-90deg)' }}/> : <ChevronLeft size={16} style={{ transform: 'rotate(180deg)' }}/>}
+                          </div>
+                        </div>
+
+                        {expandedOrder === order._id && (
+                          <div className="order-card-expanded animate-fade-in">
+                            <div className="order-timeline">
+                              <div className={`timeline-step ${getStatusStep(order.status) >= 1 ? 'active' : ''}`}>
+                                <div className="step-icon"><Clock size={16} /></div>
+                                <p>Placed</p>
+                              </div>
+                              <div className={`timeline-line ${getStatusStep(order.status) >= 2 ? 'active' : ''}`} />
+                              <div className={`timeline-step ${getStatusStep(order.status) >= 2 ? 'active' : ''}`}>
+                                <div className="step-icon"><Package size={16} /></div>
+                                <p>Processing</p>
+                              </div>
+                              <div className={`timeline-line ${getStatusStep(order.status) >= 3 ? 'active' : ''}`} />
+                              <div className={`timeline-step ${getStatusStep(order.status) >= 3 ? 'active' : ''}`}>
+                                <div className="step-icon"><Truck size={16} /></div>
+                                <p>Shipped</p>
+                              </div>
+                              <div className={`timeline-line ${getStatusStep(order.status) >= 4 ? 'active' : ''}`} />
+                              <div className={`timeline-step ${getStatusStep(order.status) >= 4 ? 'active' : ''}`}>
+                                <div className="step-icon"><CheckCircle2 size={16} /></div>
+                                <p>Delivered</p>
+                              </div>
+                            </div>
+
+                            <div className="order-info-grid">
+                              <div className="info-box">
+                                <h5>Shipping Details</h5>
+                                <p><strong>{order.shippingAddress.fullName}</strong></p>
+                                <p>{order.shippingAddress.street}</p>
+                                <p>{order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zipCode}</p>
+                              </div>
+                              
+                              {(order.trackingNumber || order.trackingUrl) && (
+                                <div className="info-box tracking-box">
+                                  <h5>Carrier Info</h5>
+                                  {order.trackingNumber && <p><strong>Tracking:</strong> {order.trackingNumber}</p>}
+                                  {order.trackingUrl && (
+                                    <a href={order.trackingUrl} target="_blank" rel="noopener noreferrer" className="btn-link" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', marginTop: '0.5rem' }}>
+                                      <MapPin size={14} /> Track on Carrier Site
+                                    </a>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="order-items">
+                              <h5>Items</h5>
+                              <div className="items-list">
+                                {order.products.map((item, idx) => (
+                                  <div key={idx} className="order-item-row">
+                                    <div className="item-name">
+                                      <span className="qty">{item.quantity}x</span> {item.product?.title || 'Unknown Product'}
+                                    </div>
+                                    <div className="item-price">₦{(item.priceAtPurchase * item.quantity).toFixed(2)}</div>
+                                  </div>
+                                ))}
+                                <div className="order-total-row">
+                                  <span>Total</span>
+                                  <span>₦{order.totalAmount.toFixed(2)}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="orders-section past-orders">
+                <h3 className="orders-section-title">Past Orders</h3>
+                {pastOrders.length === 0 ? (
+                  <div className="empty-orders glass-card">
+                    <p>No past orders.</p>
+                  </div>
+                ) : (
+                  <div className="orders-list">
+                    {pastOrders.slice(0, visiblePastOrders).map(order => (
+                      <div key={order._id} className="order-card compact glass-card">
+                        <div className="order-card-header">
+                          <div>
+                            <h4>Order <span style={{ fontFamily: 'monospace', color: 'var(--accent-gold)' }}>#{order._id.substring(0, 8)}</span></h4>
+                            <p className="order-date">{new Date(order.createdAt).toLocaleDateString()}</p>
+                          </div>
+                          <div className="order-status-group">
+                            <span className={`badge status-badge status-${order.status.toLowerCase()}`}>{order.status}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {visiblePastOrders < pastOrders.length && (
+                      <button 
+                        className="btn btn-outline load-more-btn"
+                        onClick={() => setVisiblePastOrders(prev => prev + 5)}
+                      >
+                        Load More Orders
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

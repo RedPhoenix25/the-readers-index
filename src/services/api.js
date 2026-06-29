@@ -426,10 +426,13 @@ export async function fetchProductById(id) {
   return res.json();
 }
 
-export async function createOrder(orderData) {
+export async function createOrder(orderData, token) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  
   const res = await fetch(`${API_BASE}/orders`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(orderData),
   });
   if (!res.ok) {
@@ -439,16 +442,11 @@ export async function createOrder(orderData) {
   return res.json();
 }
 
-export async function trackOrder(orderId, email) {
-  const res = await fetch(`${API_BASE}/orders/track`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ orderId, email }),
+export async function fetchUserOrders(token) {
+  const res = await fetch(`${API_BASE}/user/orders`, {
+    headers: { 'Authorization': `Bearer ${token}` }
   });
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.error || 'Failed to track order');
-  }
+  if (!res.ok) throw new Error('Failed to fetch user orders');
   return res.json();
 }
 
