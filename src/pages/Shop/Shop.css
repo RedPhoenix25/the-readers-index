@@ -16,7 +16,7 @@
   font-size: 3.5rem;
   margin-bottom: var(--space-md);
   color: var(--text-primary);
-  background: linear-gradient(135deg, #fff, var(--accent-gold));
+  background: linear-gradient(135deg, var(--text-primary), var(--accent-gold));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
