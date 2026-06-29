@@ -946,6 +946,25 @@ app.get('/api/user/orders', authenticateToken, async (req, res) => {
   }
 });
 
+app.delete('/api/user/orders/:id', authenticateToken, async (req, res) => {
+  try {
+    const order = await Order.findOne({ _id: req.params.id, user: req.user.id });
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    
+    // Only allow deleting past orders (Delivered or Cancelled)
+    if (!['Delivered', 'Cancelled'].includes(order.status)) {
+      return res.status(400).json({ error: 'Only past orders can be deleted' });
+    }
+    
+    await Order.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Order deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/orders', async (req, res) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 }).populate('products.product');

@@ -450,6 +450,18 @@ export async function fetchUserOrders(token) {
   return res.json();
 }
 
+export async function deleteUserOrder(token, orderId) {
+  const res = await fetch(`${API_BASE}/user/orders/${orderId}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || 'Failed to delete order');
+  }
+  return res.json();
+}
+
 export async function sendNewsletter(payload) {
   const token = localStorage.getItem('adminToken');
   const res = await fetch(`${API_BASE}/newsletter/send`, {

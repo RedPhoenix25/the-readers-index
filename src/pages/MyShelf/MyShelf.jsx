@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import BookCard from '../../components/BookCard/BookCard';
 import BookModal from '../../components/BookModal/BookModal';
 import { uploadAvatar, API_BASE } from '../../services/api';
-import { fetchUserOrders } from '../../services/api';
+import { fetchUserOrders, deleteUserOrder } from '../../services/api';
 import toast from 'react-hot-toast';
 import './MyShelf.css';
 
@@ -151,6 +151,18 @@ export default function MyShelf() {
   useEffect(() => {
     loadUserData();
   }, [token]);
+
+  const handleDeleteOrder = async (e, orderId) => {
+    e.stopPropagation();
+    if (!window.confirm('Are you sure you want to delete this order from your history?')) return;
+    try {
+      await deleteUserOrder(token, orderId);
+      setOrders(prev => prev.filter(o => o._id !== orderId));
+      toast.success('Order deleted');
+    } catch (error) {
+      toast.error('Failed to delete order');
+    }
+  };
 
   const handleRemoveBook = async (e, bookId) => {
     e.stopPropagation();
@@ -454,6 +466,13 @@ export default function MyShelf() {
                                 title="Copy Full Order ID"
                               >
                                 <Copy size={14} />
+                              </button>
+                              <button 
+                                onClick={(e) => handleDeleteOrder(e, order._id)}
+                                style={{ background: 'transparent', border: 'none', color: 'var(--accent-red, #ef4444)', cursor: 'pointer', padding: '4px', marginLeft: 'auto' }}
+                                title="Delete Order History"
+                              >
+                                <Trash2 size={16} />
                               </button>
                             </div>
                             <p className="order-date">{new Date(order.createdAt).toLocaleDateString()}</p>
