@@ -1328,7 +1328,7 @@ export default function Admin() {
                       <h2>Orders</h2>
                       <p>View and manage incoming store orders.</p>
                     </div>
-                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                       <button className="btn btn-secondary" onClick={handleDownloadOrdersCSV}>
                         <Download size={18} /> Export CSV
                       </button>
