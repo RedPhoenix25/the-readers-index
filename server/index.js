@@ -129,10 +129,10 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     const { email } = req.body;
     
     // Check if email environment variables are configured
-    if (!process.env.RESEND_API_KEY && !process.env.EMAIL_PASS) {
-      console.error('⚠️ Forgot password error: Neither RESEND_API_KEY nor EMAIL_PASS is set.');
+    if (!process.env.RESEND_API_KEY && !process.env.SENDGRID_API_KEY && !process.env.EMAIL_PASS) {
+      console.error('⚠️ Forgot password error: No email API keys or SMTP passwords are set.');
       return res.status(500).json({ 
-        error: 'Backend email service is not configured. Please set the RESEND_API_KEY environment variable on Render to send via Resend API (recommended for Render Free tier).' 
+        error: 'Backend email service is not configured. Please set the SENDGRID_API_KEY environment variable on Render.' 
       });
     }
 
@@ -169,8 +169,31 @@ app.post('/api/auth/forgot-password', async (req, res) => {
       </div>
     `;
 
-    // 1. Send via Resend HTTP REST API if key is provided (never blocked by Render Free)
-    if (process.env.RESEND_API_KEY) {
+    // 1. Send via SendGrid HTTP API
+    if (process.env.SENDGRID_API_KEY) {
+      console.log('Sending reset email via SendGrid HTTP API...');
+      const sendgridResponse = await fetch('https://api.sendgrid.com/v3/mail/send', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.SENDGRID_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          personalizations: [{ to: [{ email }] }],
+          from: { email: process.env.EMAIL_USER || 'thereadersindex@gmail.com', name: "The Reader's Index" },
+          subject: "Reset Your Password - The Reader's Index",
+          content: [{ type: 'text/html', value: htmlContent }]
+        })
+      });
+
+      if (!sendgridResponse.ok) {
+        const sgData = await sendgridResponse.json();
+        throw new Error(sgData.errors?.[0]?.message || 'SendGrid HTTP API failure');
+      }
+      console.log('Reset email sent successfully via SendGrid!');
+    }
+    // 2. Send via Resend HTTP REST API if key is provided (never blocked by Render Free)
+    else if (process.env.RESEND_API_KEY) {
       console.log('Sending reset email via Resend HTTP API...');
       const resendResponse = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -183,7 +206,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
             ? `"The Reader's Index" <${process.env.EMAIL_USER}>` 
             : `"The Reader's Index" <onboarding@resend.dev>`,
           to: [email],
-          subject: "Reset Your Password — The Reader's Index",
+          subject: "Reset Your Password - The Reader's Index",
           html: htmlContent
         })
       });
@@ -194,7 +217,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
       }
       console.log('Reset email sent successfully via Resend!');
     } 
-    // 2. Fallback to standard Nodemailer SMTP
+    // 3. Fallback to standard Nodemailer SMTP
     else {
       console.log('Sending reset email via standard SMTP...');
       await transporter.sendMail({
@@ -740,7 +763,33 @@ app.post('/api/newsletter/send', async (req, res) => {
       return res.status(404).json({ error: 'No subscribers found for this audience' });
     }
 
-    if (process.env.RESEND_API_KEY) {
+    if (process.env.SENDGRID_API_KEY) {
+      console.log('Sending newsletter via SendGrid HTTP API...');
+      const sendgridResponse = await fetch('https://api.sendgrid.com/v3/mail/send', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.SENDGRID_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          personalizations: [
+            {
+              to: [{ email: process.env.EMAIL_USER || 'thereadersindex@gmail.com' }],
+              bcc: emails.map(email => ({ email }))
+            }
+          ],
+          from: { email: process.env.EMAIL_USER || 'thereadersindex@gmail.com', name: "The Readers Index" },
+          subject: subject,
+          content: [{ type: 'text/html', value: message }]
+        })
+      });
+
+      if (!sendgridResponse.ok) {
+        const sgData = await sendgridResponse.json();
+        throw new Error(sgData.errors?.[0]?.message || 'SendGrid HTTP API failure');
+      }
+      console.log('Newsletter sent successfully via SendGrid!');
+    } else if (process.env.RESEND_API_KEY) {
       console.log('Sending newsletter via Resend HTTP API...');
       const resendResponse = await fetch('https://api.resend.com/emails', {
         method: 'POST',
