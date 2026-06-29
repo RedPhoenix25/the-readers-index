@@ -118,7 +118,7 @@ export default function Checkout() {
               </div>
             </div>
           </div>
-          <Link to="/my-archive?tab=orders" className="btn btn-primary" style={{ width: '100%', marginBottom: '1rem' }}>
+          <Link to="/my-shelf?tab=orders" className="btn btn-primary" style={{ width: '100%', marginBottom: '1rem' }}>
             Track Your Order
           </Link>
           <Link to="/shop" className="btn btn-secondary" style={{ width: '100%' }}>
