@@ -763,6 +763,25 @@ app.post('/api/newsletter/send', async (req, res) => {
       return res.status(404).json({ error: 'No subscribers found for this audience' });
     }
 
+    const htmlContent = `
+      <div style="max-width: 600px; margin: 0 auto; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1a1a2e; color: #d4cfc7; padding: 2.5rem; border-radius: 12px; border: 1px solid rgba(201,168,76,0.2);">
+        <div style="text-align: center; margin-bottom: 2rem;">
+          <h1 style="color: #C9A84C; font-size: 1.8rem; margin: 0; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;">The Reader's Index</h1>
+          <hr style="border: none; border-top: 1px solid rgba(201,168,76,0.15); margin-top: 1.5rem;" />
+        </div>
+        
+        <div style="line-height: 1.7; font-size: 1.05rem; color: #d4cfc7;">
+          ${message}
+        </div>
+
+        <div style="margin-top: 3rem; text-align: center;">
+          <hr style="border: none; border-top: 1px solid rgba(201,168,76,0.15); margin-bottom: 1.5rem;" />
+          <p style="color: #a89f91; font-size: 0.85rem; margin: 0.5rem 0;">You're receiving this because you subscribed to updates from The Reader's Index.</p>
+          <p style="color: #6b6560; font-size: 0.8rem; margin: 0;">© ${new Date().getFullYear()} The Reader's Index. All rights reserved.</p>
+        </div>
+      </div>
+    `;
+
     if (process.env.SENDGRID_API_KEY) {
       console.log('Sending newsletter via SendGrid HTTP API...');
       const sendgridResponse = await fetch('https://api.sendgrid.com/v3/mail/send', {
@@ -780,7 +799,7 @@ app.post('/api/newsletter/send', async (req, res) => {
           ],
           from: { email: process.env.EMAIL_USER || 'thereadersindex@gmail.com', name: "The Readers Index" },
           subject: subject,
-          content: [{ type: 'text/html', value: message }]
+          content: [{ type: 'text/html', value: htmlContent }]
         })
       });
 
@@ -804,7 +823,7 @@ app.post('/api/newsletter/send', async (req, res) => {
           to: process.env.EMAIL_USER || 'thereadersindex@gmail.com',
           bcc: emails,
           subject: subject,
-          html: message
+          html: htmlContent
         })
       });
 
@@ -820,7 +839,7 @@ app.post('/api/newsletter/send', async (req, res) => {
         to: process.env.EMAIL_USER || 'thereadersindex@gmail.com',
         bcc: emails,
         subject: subject,
-        html: message
+        html: htmlContent
       };
       await transporter.sendMail(mailOptions);
     }
